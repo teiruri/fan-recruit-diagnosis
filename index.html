@@ -61,10 +61,14 @@ input[type=number]{text-align:center}
 .svq{display:flex;gap:10px;align-items:center;margin:5px 0;flex-wrap:wrap}
 .svq>span{flex:1 1 42%;min-width:150px}
 .svq input{flex:1 1 48%;min-width:150px}
-.svnums{display:flex;flex-wrap:wrap;gap:14px;padding:9px 11px;background:#f6fafc;border:1px solid #e3edf2;border-radius:8px}
-.svnum{text-align:center}
-.svnum .lbl{font-size:11px;color:var(--muted);margin-bottom:2px;line-height:1.3}
-.svnum .gate2{font-size:10.5px;margin-top:3px;line-height:1.3;min-height:26px}
+.svnums{display:flex;flex-direction:column;gap:9px;padding:11px 13px;background:#f6fafc;border:1px solid #e3edf2;border-radius:8px}
+.svnum{display:flex;align-items:center;gap:12px}
+.svnlbl{flex:1 1 auto;min-width:0}
+.svnlbl b{font-size:13px;color:var(--ink)}
+.svndesc{display:block;font-size:11px;color:var(--muted);line-height:1.35;margin-top:1px}
+.svnum .gate2{flex:0 0 96px;text-align:center;font-size:10.5px;line-height:1.35}
+body.mode-meet .svnlbl b{font-size:16px}
+body.mode-meet .svndesc{font-size:13px}
 .cs-script{background:#eef7fb;border-left:4px solid var(--pc,#00B0F0);border-radius:6px;padding:6px 10px;margin:6px 0;color:var(--ink)}
 /* === サーベイ結果 スコアカード === */
 .scorecard{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
@@ -254,6 +258,10 @@ var steps=[
 ];
 /* 各ファネルkeyがどのFANサイクルステップに属するか */
 var KEYSTEP={apply:0,doc:1,casual:2,i1:2,i2:2,final:2,offer:3,accept:3};
+/* 数値欄の名称・説明（〔前段〕→〔この段階〕で自動生成） */
+var STAGE_NOUN={apply:"応募",doc:"書類通過",casual:"カジュアル面談",i1:"一次面接",i2:"二次面接",final:"最終面接",offer:"内定",accept:"承諾"};
+var STAGE_TITLE={apply:"応募数",doc:"書類選考の通過",casual:"カジュアル面談 実施",i1:"一次面接 実施",i2:"二次面接 実施",final:"最終面接 実施",offer:"内定",accept:"承諾（入社）"};
+var STAGE_ACT={doc:"書類を提出・通過した",casual:"カジュアル面談を実施した",i1:"一次面接を実施した",i2:"二次面接を実施した",final:"最終面接を実施した",offer:"内定を出した",accept:"承諾（入社）した"};
 /* 打ち手DB（playbook）：FANサイクル×課題→施策→サービス */
 var playbook=[
  {step:0,issue:"母集団の量が不足／媒体が最適化されていない",solve:"媒体プランを見直し、配信を最適化する",svc:"REVP（効果検証）"},
@@ -320,8 +328,12 @@ function renderSurvey(){
   var keysHere=act.filter(function(dd){return KEYSTEP[dd.k]===i;});
   if(keysHere.length||(i===1&&cfg.doc)){
    h+='<div class="svsub">数値の確認（人数）</div><div class="svnums">';
-   h+=keysHere.map(function(dd){return '<div class="svnum"><div class="lbl">'+dd.n+'</div><input class="num" id="v_'+dd.k+'" type="number" min="0" value="'+(vals[dd.k]||"")+'"><div class="gate2" id="gate_'+dd.k+'"></div></div>';}).join("");
-   if(i===1&&cfg.doc){h+='<div class="svnum"><div class="lbl" style="color:var(--warn)">うち書類不合格<br>(ターゲット外)</div><input class="num" id="v_docfail" type="number" min="0" value="'+(vals.docfail||"")+'"><div class="gate2"></div></div>';}
+   h+=keysHere.map(function(dd){
+    var idx=act.indexOf(dd),prevK=idx>0?act[idx-1].k:null;
+    var desc=dd.k==="apply"?"エントリー総数（母集団）":((prevK?STAGE_NOUN[prevK]:"応募")+" → "+STAGE_ACT[dd.k]+"人数");
+    return '<div class="svnum"><div class="svnlbl"><b>'+STAGE_TITLE[dd.k]+'</b><span class="svndesc">'+desc+'</span></div><input class="num" id="v_'+dd.k+'" type="number" min="0" value="'+(vals[dd.k]||"")+'"><div class="gate2" id="gate_'+dd.k+'"></div></div>';
+   }).join("");
+   if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（ターゲット外）</b><span class="svndesc">応募のうちターゲット外で見送った数（残り＝応募後の離脱）</span></div><input class="num" id="v_docfail" type="number" min="0" value="'+(vals.docfail||"")+'"><div class="gate2"></div></div>';}
    h+='</div>';
   }
   h+='<div class="svsub">実施中の取り組み（タップで選択）</div><div class="row">'+s.tog.map(function(t,ti){return '<span class="chip'+(s.on[ti]?" on":"")+'" data-step="'+i+'" data-ti="'+ti+'">'+t+'</span>';}).join("")+'</div>';
