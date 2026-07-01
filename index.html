@@ -153,6 +153,9 @@ body.mode-meet .rpthead .rptsub{font-size:15px}
 body.mode-meet .rvsumt{font-size:14px}
 body.mode-meet .rvsumc b{font-size:18px}
 @media(max-width:680px){.rvsum{grid-template-columns:1fr}}
+.goalbar{position:relative;height:20px;background:#eef3f6;border-radius:99px;overflow:hidden;margin-top:9px}
+.goalfill{height:100%;border-radius:99px;transition:width .3s}
+body.mode-meet .goalbar{height:26px}
 @media(max-width:680px){.grid2{grid-template-columns:1fr}.parrow{transform:rotate(90deg);justify-content:center;width:100%}
 .svnums{overflow-x:auto}}
 @media print{
@@ -266,6 +269,8 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   <div class="sec prep-only" style="margin-top:24px;font-size:15px;color:var(--ink)">― サーベイ結果 ―</div>
   <div class="sec meet-only" style="margin-top:24px;font-size:15px;color:var(--ink)">⑤ サーベイ結果｜総合評価とカテゴリ別スコア</div>
   <div class="card"><div id="scorecard"></div></div>
+
+  <div class="card" id="goalCard" style="display:none"></div>
 
   <div class="card">
     <div class="row" style="justify-content:space-between"><b style="font-size:13px">到達度カーブ（承諾曲線になぞらえたFANサイクル）</b><span class="muted">縦軸＝到達度・志望度</span></div>
@@ -401,6 +406,7 @@ function renderSurvey(){
     var desc=dd.k==="apply"?"エントリー総数（母集団）":((prevK?STAGE_NOUN[prevK]:"応募")+" → "+STAGE_ACT[dd.k]+"人数");
     return '<div class="svnum"><div class="svnlbl"><b>'+STAGE_TITLE[dd.k]+'</b><span class="svndesc">'+desc+'</span></div><input class="num" id="v_'+dd.k+'" type="number" min="0" value="'+(vals[dd.k]||"")+'"><span class="unit">名</span><div class="gate2" id="gate_'+dd.k+'"></div></div>';
    }).join("");
+   if(i===0){h+='<div class="svnum" style="border-top:1px dashed #e3edf2;padding-top:9px;margin-top:2px"><div class="svnlbl"><b style="color:var(--cyanD)">🎯 採用目標人数（今期）</b><span class="svndesc">今回の採用で目指す人数。結果の「実現度（達成率）」の基準になります</span></div><input class="num" id="v_target" type="number" min="0" value="'+(vals.target||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';}
    if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（ターゲット外）</b><span class="svndesc">応募のうちターゲット外で見送った数（残り＝応募後の離脱）</span></div><input class="num" id="v_docfail" type="number" min="0" value="'+(vals.docfail||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';}
    h+='</div>';
   }
@@ -410,6 +416,7 @@ function renderSurvey(){
  host.querySelectorAll(".hpnote").forEach(function(inp){inp.oninput=function(){hpnotes[inp.dataset.hp]=inp.value;};});
  act.forEach(function(dd){var el=document.getElementById("v_"+dd.k);if(el)el.oninput=function(){vals[dd.k]=+this.value||0;recompute();};});
  var df=document.getElementById("v_docfail");if(df)df.oninput=function(){vals.docfail=+this.value||0;recompute();};
+ var tg=document.getElementById("v_target");if(tg)tg.oninput=function(){vals.target=+this.value||0;recompute();};
  host.querySelectorAll(".chip[data-step]").forEach(function(c){c.onclick=function(){c.classList.toggle("on");steps[+c.dataset.step].on[+c.dataset.ti]=c.classList.contains("on")?1:0;recompute();};});
 }
 
@@ -484,6 +491,7 @@ function blankOutputs(){var msg='<span class="muted">選考ファネルの人数
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse)cse.innerHTML="";}
  [].forEach.call(document.querySelectorAll('#stepper .stp.act'),function(el){el.classList.remove("act");});
  var cb=document.getElementById("consultBridge");if(cb)cb.innerHTML='<div class="card"><span class="muted">数値の確認まで一緒に入力すると、見立てとご提案が表示されます。</span></div>';
+ var gc2=document.getElementById("goalCard");if(gc2)gc2.style.display="none";
 }
 function recompute(){
  var act=activeDefs();
@@ -526,20 +534,31 @@ function recompute(){
 
  var worst=-1,wgap=-1,wb=0;
  for(var i=0;i<act.length-1;i++){var a=act[i].k,bn=benchOf(a,act[i+1].k),ca=vals[a]||0,pc=ca>0?(vals[act[i+1].k]||0)/ca*100:0,gp=bn-pc;if(ca>0&&gp>wgap){wgap=gp;worst=i;wb=bn;}}
- var effHtml;
+ var effHtml,impLo=0,impHi=0;
  if(worst>=0&&apply>0){
   var wa=act[worst].k,wbk=act[worst+1].k,curR=(vals[wa]||0)>0?(vals[wbk]||0)/(vals[wa]||0):0,tgt=wb/100;
   var rrB=[];for(var i=0;i<act.length-1;i++){var a=act[i].k;rrB.push((vals[a]||0)>0?(vals[act[i+1].k]||0)/(vals[a]||0):0);}
   var projFn=function(rate){var rr=rrB.slice();rr[worst]=rate;var nn=apply;for(var j=0;j<rr.length;j++)nn*=rr[j];return nn;};
   var base=vals.accept||0;
   var addC=Math.max(0,Math.round(projFn(curR+0.4*(tgt-curR))-base)),addO=Math.max(0,Math.round(projFn(curR+0.7*(tgt-curR))-base));
-  var lo=Math.min(addC,addO),hi=Math.max(addC,addO);
+  var lo=Math.min(addC,addO),hi=Math.max(addC,addO);impLo=lo;impHi=hi;
   if(hi<=0){effHtml='<b style="color:var(--cyanD)">期待効果</b>　最も弱い転換「'+act[worst].n+'→'+act[worst+1].n+'」は目安に近く、改善余地はわずかです。';}
   else{var rangeTxt=lo===hi?('約'+(base+hi)+'名（+'+hi+'名）'):('約'+(base+lo)+'〜'+(base+hi)+'名（+'+lo+'〜+'+hi+'名）');
    effHtml='<b style="color:var(--cyanD)">期待効果（控えめ〜標準の幅で試算）</b>　最も弱い転換「'+act[worst].n+'→'+act[worst+1].n+'」を目安へ近づけた場合：承諾 <b>'+base+'名 → '+rangeTxt+'</b><div class="muted" style="margin-top:4px">※目安ギャップの4〜7割を埋めた想定の幅です。単一施策で満額改善するとは限らず、母集団を増やすと歩留まりが下がる場合もあります（＝量と質の両立が前提）。</div>';}
  }
  else effHtml='<span class="muted">人数を入力すると改善インパクトを試算します。</span>';
  document.getElementById("effect").innerHTML=effHtml;
+
+ var target=vals.target||0,gcard=document.getElementById("goalCard");
+ if(gcard){
+  if(target>0){var acc=vals.accept||0,rate=Math.round(acc/target*100);var pLo=acc+impLo,pHi=acc+impHi,rLo=Math.round(pLo/target*100),rHi=Math.round(pHi/target*100);
+   var rcol=rate>=100?"var(--ok)":rate>=70?"var(--cyanD)":rate>=40?"var(--warn)":"var(--bad)";
+   gcard.style.display="";
+   gcard.innerHTML='<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><b style="font-size:14px">🎯 採用目標に対する実現度</b><span class="muted">目標 <b style="color:var(--ink);font-size:17px">'+target+'</b>名　/　現状の採用〈承諾〉 <b style="color:var(--ink);font-size:17px">'+acc+'</b>名</span></div>'+
+    '<div class="goalbar"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div>'+
+    '<div class="row" style="justify-content:space-between;margin-top:6px"><span style="font-weight:bold;color:'+rcol+';font-size:15px">達成率 '+rate+'%'+(rate>=100?"（目標達成）":"（目標まであと"+Math.max(0,target-acc)+"名）")+'</span>'+(impHi>0?'<span class="muted">打ち手に取り組めば 約'+pLo+'〜'+pHi+'名（達成率 '+rLo+'〜'+rHi+'%）へ</span>':'')+'</div>';
+  } else { gcard.style.display="none"; }
+ }
 
  var weak=[0,1,2,3,4].map(function(i){return{i:i,sc:sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);
  var mv=document.getElementById("moves");mv.innerHTML="";
