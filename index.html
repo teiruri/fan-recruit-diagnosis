@@ -73,10 +73,12 @@ body.mode-meet .svndesc{font-size:13px}
 .unit{font-size:12px;color:var(--muted);flex:0 0 auto}
 body.mode-meet .unit{font-size:15px}
 .bmflow{display:flex;flex-direction:column;gap:8px}
-.bmrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.bmstage{background:#eef4f8;border:1px solid #d7e3ea;border-radius:6px;padding:3px 10px;font-size:13px;font-weight:bold;color:var(--ink)}
-.bmar{color:var(--cyanD);font-weight:bold}
-.bmnote{margin-left:2px}
+.bmrow{display:flex;align-items:center;gap:10px}
+.bmpair{flex:0 0 300px;display:flex;align-items:center;gap:8px}
+.bmstage{flex:1;text-align:center;background:#eef4f8;border:1px solid #d7e3ea;border-radius:6px;padding:4px 8px;font-size:13px;font-weight:bold;color:var(--ink)}
+.bmar{color:var(--cyanD);font-weight:bold;flex:0 0 auto}
+.bmfix{color:var(--muted);font-size:12.5px}
+@media(max-width:680px){.bmpair{flex:0 0 100%}}
 .cs-script{background:#eef7fb;border-left:4px solid var(--pc,#00B0F0);border-radius:6px;padding:6px 10px;margin:6px 0;color:var(--ink)}
 /* === サーベイ結果 スコアカード === */
 .scorecard{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
@@ -193,16 +195,11 @@ body.mode-meet .bartrack{height:20px}
     <span class="chip" data-k="final">最終面接</span>
   </div>
 
-  <div class="sec prep-only">目安（歩留まり）設定｜各「段階 → 段階」の通過率の目安（職種・業界で調整）</div>
+  <div class="sec prep-only">目安（歩留まり）設定｜選考プロセスに沿った「段階 → 段階」の通過率（職種・業界で調整）</div>
   <div class="card prep-only">
-    <div class="row" style="margin-bottom:12px"><span class="muted">職種プリセット</span><select id="preset"></select><span class="muted">を選ぶと下の目安が自動で入ります（個別に上書き可）。</span></div>
-    <div class="bmflow">
-      <div class="bmrow"><span class="bmstage">応募</span><span class="bmar">→</span><span class="bmstage">書類通過</span><input class="num bn" id="bm_ad" type="number"><span class="unit">%</span></div>
-      <div class="bmrow"><span class="bmstage">書類通過</span><span class="bmar">→</span><span class="bmstage">面接（一次）</span><input class="num bn" id="bm_dm" type="number"><span class="unit">%</span></div>
-      <div class="bmrow"><span class="bmstage">面接</span><span class="bmar">→</span><span class="bmstage">次の面接</span><input class="num bn" id="bm_mm" type="number"><span class="unit">%</span><span class="muted bmnote">＝面接間（一次→二次 など、連続する面接の通過率）</span></div>
-      <div class="bmrow"><span class="bmstage">最終面接</span><span class="bmar">→</span><span class="bmstage">内定</span><input class="num bn" id="bm_mo" type="number"><span class="unit">%</span><span class="muted bmnote">＝最後の面接から内定を出す率</span></div>
-      <div class="bmrow"><span class="bmstage">内定</span><span class="bmar">→</span><span class="bmstage">承諾</span><input class="num bn" id="bm_oa" type="number"><span class="unit">%</span></div>
-    </div>
+    <div class="row" style="margin-bottom:12px"><span class="muted">職種プリセット</span><select id="preset"></select><span class="muted">を選ぶと下の目安が自動で入ります（個別に上書き可）。上の選考プロセス設定に連動します。</span></div>
+    <div class="bmflow" id="benchFlow"></div>
+    <div class="muted" style="margin-top:8px">※「固定目安」は標準値（調整不可）。連続する面接（面接間）が複数ある場合は先頭のみ入力（他は共通）。</div>
   </div>
 
   <div class="sec prep-only">問診＆数値入力（FANサイクル順）</div>
@@ -318,11 +315,20 @@ function chartSVG(sc){
 /* ===== 準備UI（プリセット・選考プロセス） ===== */
 var ps=document.getElementById("preset");
 Object.keys(presets).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k;ps.appendChild(o);});
-function fillBM(){["ad","dm","mm","mo","oa"].forEach(function(f){document.getElementById("bm_"+f).value=bm[f];});}
-ps.onchange=function(){bm=Object.assign({},presets[ps.value]);fillBM();recompute();};
-["ad","dm","mm","mo","oa"].forEach(function(f){document.getElementById("bm_"+f).oninput=function(){bm[f]=+this.value||0;recompute();};});
+function benchKey(a,b){if(a==="apply")return b==="doc"?"ad":null;if(a==="doc")return "dm";if(a==="casual")return null;if(a==="i1"||a==="i2")return b==="offer"?"mo":"mm";if(a==="final")return "mo";if(a==="offer")return "oa";return null;}
+function renderBench(){var host=document.getElementById("benchFlow");if(!host)return;var act=activeDefs(),seen={},rows="";
+ for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,key=benchKey(a,b);
+  var pair='<div class="bmpair"><span class="bmstage">'+STAGE_NOUN[a]+'</span><span class="bmar">→</span><span class="bmstage">'+STAGE_NOUN[b]+'</span></div>';
+  if(key&&!seen[key]){seen[key]=1;rows+='<div class="bmrow">'+pair+'<input class="num bn" id="bm_'+key+'" type="number" value="'+(bm[key]||"")+'"><span class="unit">%</span></div>';}
+  else if(key){rows+='<div class="bmrow">'+pair+'<span class="bmfix">面接間と共通</span></div>';}
+  else{rows+='<div class="bmrow">'+pair+'<span class="bmfix">'+benchOf(a,b)+' %（固定目安）</span></div>';}
+ }
+ host.innerHTML=rows;
+ ["ad","dm","mm","mo","oa"].forEach(function(f){var el=document.getElementById("bm_"+f);if(el)el.oninput=function(){bm[f]=+this.value||0;recompute();};});
+}
+ps.onchange=function(){bm=Object.assign({},presets[ps.value]);renderBench();recompute();};
 document.querySelectorAll("#cfg .chip[data-k]").forEach(function(c){
- c.onclick=function(){var k=c.dataset.k;cfg[k]=!cfg[k];c.classList.toggle("on",cfg[k]);renderSurvey();recompute();};
+ c.onclick=function(){var k=c.dataset.k;cfg[k]=!cfg[k];c.classList.toggle("on",cfg[k]);renderBench();renderSurvey();recompute();};
 });
 
 /* ===== 問診＆数値 一体カード ===== */
@@ -506,12 +512,12 @@ function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){aler
 function exportJSON(){var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var name=(document.getElementById("company").value.trim()||"採用診断")+".json";var blob=new Blob([JSON.stringify(s,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var st=JSON.parse(rd.result);applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e){alert("JSONの読み込みに失敗しました（ファイル形式をご確認ください）");}ev.target.value="";};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";seedUrls(st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}fillBM();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";seedUrls(st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls();fillBM();refreshList();buildStepper();renderReviews();renderSurvey();document.getElementById("company").addEventListener("input",updateMeetHead);setMode("prep");recompute();
+seedUrls();renderBench();refreshList();buildStepper();renderReviews();renderSurvey();document.getElementById("company").addEventListener("input",updateMeetHead);setMode("prep");recompute();
 </script>
 </body>
 </html>
