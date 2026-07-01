@@ -55,13 +55,22 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .stp.act{background:var(--pc,#00B0F0);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .stpar{color:#c1ccd3;font-weight:bold}
 /* === 問診＆数値 一体カード === */
-.svcard{background:#fff;border:1px solid #dbe3e8;border-left:5px solid var(--pc,#00B0F0);border-radius:10px;padding:12px 15px;margin-bottom:10px;box-shadow:0 2px 7px rgba(10,42,58,.06)}
-.svhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.svcard{background:#fff;border:1px solid #dbe3e8;border-left:5px solid var(--pc,#00B0F0);border-radius:10px;padding:14px 17px;margin-bottom:10px;box-shadow:0 2px 7px rgba(10,42,58,.06)}
+.svhead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid #eef2f5}
 .svhead b{font-size:16px}
-.svsub{font-size:12px;font-weight:bold;color:var(--muted);margin:9px 0 3px;letter-spacing:.02em}
-.svq{display:flex;gap:10px;align-items:center;margin:5px 0;flex-wrap:wrap}
-.svq>span{flex:1 1 42%;min-width:150px}
+.svsub{font-size:12.5px;font-weight:bold;color:#3a4a53;margin:15px 0 7px;padding-left:9px;border-left:3px solid var(--pc,#00B0F0);letter-spacing:.02em}
+.svq{display:flex;gap:10px;align-items:center;margin:0;padding:7px 2px;flex-wrap:wrap;border-bottom:1px dashed #eef2f5}
+.svq>span{flex:1 1 42%;min-width:150px;color:var(--ink)}
 .svq input{flex:1 1 48%;min-width:150px}
+.svfind{background:#f7fafc;border:1px solid #e6edf1;border-radius:8px;padding:10px 12px;margin-top:9px}
+.svfrow{display:flex;gap:9px;margin:4px 0;line-height:1.7;font-size:13.5px;color:var(--ink)}
+.svflbl{flex:0 0 auto;font-size:11px;font-weight:bold;color:#fff;background:var(--pc,#00B0F0);border-radius:5px;padding:2px 8px;white-space:nowrap;align-self:flex-start;margin-top:2px}
+.svflbl2{background:#8a97a0}
+body.mode-meet .svfrow{font-size:15px}
+body.mode-meet .svsub{font-size:14px}
+.rvhead{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(100deg,#e9f6fd,#f4fbff);border:1px solid #bfe6f8;border-radius:10px;padding:9px 14px;margin-bottom:10px;flex-wrap:wrap}
+.rvhead b{font-size:15px;color:var(--cyanD)}
+body.mode-meet .rvhead b{font-size:17px}
 .svnums{display:flex;flex-direction:column;gap:9px;padding:11px 13px;background:#f6fafc;border:1px solid #e3edf2;border-radius:8px}
 .svnum{display:flex;align-items:center;gap:12px}
 .svnlbl{flex:1 1 auto;min-width:0}
@@ -274,7 +283,7 @@ var hpoints=[
 ];
 var steps=[
  {name:"知る",tog:["媒体プラン上位","スカウト配信","エージェント視点での条件良","SNS","採用サイトからの応募流入"],on:[1,0,0,0,1]},
- {name:"惹かれる",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用動画","ターゲット視点での条件良"],on:[1,1,0,0]},
+ {name:"惹かれる",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用ピッチ資料","採用動画","ターゲット視点での条件良"],on:[1,1,0,0,0]},
  {name:"信頼する",tog:["応募への即時対応","面接調整の即連絡","面接官の惹きつけ良","惹きつけシナリオの標準化","候補者フォロー良"],on:[1,1,0,0,0]},
  {name:"決断する",tog:["クロージングシナリオ（勝ちパターン）","オファーレター","クロージングブック","家族対策","オファー面談"],on:[0,0,0,0,0]},
  {name:"活躍する",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[1,0,0,0,0]}
@@ -355,8 +364,7 @@ function renderSurvey(){
   var pc=STC[i],st=(d&&d.steps&&d.steps[i])||{};
   var fnd=cleanTxt(st.finding),ins=cleanTxt(st.insight),ask=cleanTxt(st.ask);
   var h='<div class="svcard" style="--pc:'+pc+'"><div class="svhead"><div class="row" style="gap:8px"><span class="badge" style="background:'+STP[i]+';color:'+pc+';box-shadow:none">'+(i+1)+'</span><b style="color:'+pc+'">'+names[i]+'</b></div><span id="cs_score_'+i+'" class="muted"></span></div>';
-  if(fnd)h+='<div style="margin-top:5px"><span class="muted">WEB所見：</span>'+esc(fnd)+'</div>';
-  if(ins)h+='<div><span class="muted">気づき・仮説：</span>'+esc(ins)+'</div>';
+  if(fnd||ins){h+='<div class="svfind">';if(fnd)h+='<div class="svfrow"><span class="svflbl">WEB所見</span><span>'+esc(fnd)+'</span></div>';if(ins)h+='<div class="svfrow"><span class="svflbl svflbl2">気づき</span><span>'+esc(ins)+'</span></div>';h+='</div>';}
   if(ask)h+='<div class="cs-script prep-only" style="--pc:'+pc+'"><b style="color:'+pc+'">🗣 こう聞く（担当者メモ・商談中は非表示）：</b>'+esc(ask)+'</div>';
   h+='<div class="svsub">ヒアリング（回答をメモ）</div>';
   h+=hpoints[i].pts.map(function(p,j){var key=i+"_"+j;return '<div class="svq"><span>'+p+'</span><input type="text" class="hpnote" data-hp="'+key+'" placeholder="回答メモ" value="'+esc(hpnotes[key]||"")+'"></div>';}).join("");
@@ -387,17 +395,11 @@ function renderReviews(){var host=document.getElementById("reviews");if(!host)re
  var qs=rv&&rv.quotes?rv.quotes.filter(function(q){return q&&q.text;}):[];
  var goods=rv&&rv.good?rv.good.filter(Boolean):[],bads=rv&&rv.bad?rv.bad.filter(Boolean):[];
  var has=rv&&(rv.summary||rv.rating||goods.length||bads.length||cats.length||qs.length);
- if(!has){host.innerHTML='<b style="color:var(--cyanD);font-size:15px">💬 口コミ・評判分析</b><div class="muted" style="margin-top:5px">口コミサイトのURLを入力し、AI分析結果を貼り付けると、総合評価・カテゴリ別スコア・代表的な口コミ・良い点／気になる点が表示されます。</div>';return;}
- var h='<div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">';
- h+='<div style="flex:1 1 300px;min-width:250px"><b style="color:var(--cyanD);font-size:15px">💬 口コミ・評判分析</b>';
- if(rv.summary)h+='<div style="margin:7px 0 0;line-height:1.7">'+esc(rv.summary)+'</div>';
- h+='</div>';
- if(rv.rating){var rc=ratingColor(rv.rating),pct=Math.round(Math.max(0,Math.min(5,parseFloat(rv.rating)||0))/5*100);
-  h+='<div class="rvgauge"><div class="muted" style="font-weight:bold">総合評価</div><div class="rvnum" style="color:'+rc+'">'+esc(rv.rating)+'<span style="font-size:14px;color:var(--muted)"> /5.0</span></div><div>'+stars(rv.rating)+'</div><div class="bartrack" style="margin:7px auto 0;max-width:150px"><div class="barfill" style="width:'+pct+'%;background:'+rc+'"></div></div>';
-  var meta=[];if(rv.recommend)meta.push('推奨度 <b style="color:var(--ink)">'+esc(rv.recommend)+'%</b>');if(rv.reviewCount)meta.push('口コミ '+esc(rv.reviewCount)+'件');
-  if(meta.length)h+='<div class="muted" style="margin-top:6px">'+meta.join('　/　')+'</div>';
-  h+='</div>';}
- h+='</div>';
+ if(!has){host.innerHTML='<div class="rvhead"><b>💬 口コミ・評判分析</b></div><div class="muted">「① AI分析プロンプトをコピー」→ChatGPT/Claudeで分析→出力を貼り戻すと、総合評価・カテゴリ別スコア・代表的な口コミ抜粋・良い点／気になる点が表示されます。</div>';return;}
+ var h='<div class="rvhead"><b>💬 口コミ・評判分析</b>'+(rv.rating?'<span>総合 <b style="font-size:21px;color:'+ratingColor(rv.rating)+'">'+esc(rv.rating)+'</b> '+stars(rv.rating)+' <span class="muted">/ 5.0</span></span>':'')+'</div>';
+ var meta=[];if(rv.recommend)meta.push('👍 推奨度 <b style="color:var(--ink)">'+esc(rv.recommend)+'%</b>');if(rv.reviewCount)meta.push('🗒 口コミ '+esc(rv.reviewCount)+'件');
+ if(meta.length)h+='<div style="margin-bottom:8px;color:var(--muted);font-size:13px">'+meta.join('　/　')+'</div>';
+ if(rv.summary)h+='<div style="line-height:1.75;margin-bottom:6px">'+esc(rv.summary)+'</div>';
  if(cats.length){h+='<div class="svsub" style="margin-top:11px">カテゴリ別スコア</div><div class="rvcats">'+cats.map(function(c){var s=Math.max(0,Math.min(5,parseFloat(c.score)||0)),col=ratingColor(c.score);return '<div class="rvcat"><span class="rvcatn">'+esc(c.name)+'</span><div class="bartrack"><div class="barfill" style="width:'+Math.round(s/5*100)+'%;background:'+col+'"></div></div><span class="rvcats2" style="color:'+col+'">'+esc(c.score)+'</span></div>';}).join("")+'</div>';}
  if(qs.length){h+='<div class="svsub" style="margin-top:11px">代表的な口コミ（抜粋）</div><div class="rvquotes">'+qs.map(function(q){var good=q.type!=="bad";return '<div class="rvquote '+(good?"q-g":"q-b")+'"><b style="color:'+(good?"var(--ok)":"var(--bad)")+'">'+(good?"👍":"⚠️")+'</b> “'+esc(q.text)+'”</div>';}).join("")+'</div>';}
  var gb="";
@@ -539,7 +541,7 @@ function seedUrls(list){var w=document.getElementById("urls");w.innerHTML="";if(
 function copyPrompt(){
  var c=document.getElementById("company").value||"（企業名）";
  var us=getUrls(),u=us.length?us.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（URL未入力）";
- var p="以下の企業のキャリア（中途）採用を、WEB上の公開情報から分析してください。\n企業名: "+c+"\n対象URL（種別つき）:\n"+u+"\n\nこの結果は営業の初回アポで『事前調査のフィードバック→アイスブレイク→ヒアリングの前振り』に使います。\n\n【表示ルール】finding（WEB所見）とinsight（気づき）は、顧客と同席の画面にそのまま表示されます。事実ベースの丁寧な日本語で記述し、WEBの公開情報だけでは判断できない項目（特に④決断・⑤活躍）はfindingを空文字にしてください（『当日ヒアリング』等の内部メモ表現は書かない）。askは営業担当者だけが見るメモ（顧客には非表示）なので、当日の質問文にしてください。reviewsは口コミサイトの内容に基づいて記述してください。\n\n【重要】出力は下記JSONのみ。前後に説明文やコードブロック記号は付けないこと。\n{\n  \"icebreak\": \"アポ冒頭で使える一言（事前に拝見した上での具体的な称賛＋関心。1文）\",\n  \"summary\": \"全体所感を2〜3文。良い点→伸びしろの順で前向きに。\",\n  \"reviews\": {\n    \"rating\": \"口コミサイトの総合評価（5点満点。例:3.6。不明なら空文字）\",\n    \"reviewCount\": \"口コミ件数（分かれば数値、不明なら空文字）\",\n    \"recommend\": \"満足・推奨の割合%（例:68。不明なら空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"5点満点。不明なら空文字\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ],\n    \"summary\": \"口コミ全体の傾向を1〜2文で\",\n    \"good\": [\"良い評判・強み\", \"\"],\n    \"bad\": [\"気になる評判・懸念点\", \"\"],\n    \"quotes\": [\n      {\"type\": \"good\", \"text\": \"代表的な良い口コミの抜粋・要約（1文）\"},\n      {\"type\": \"bad\", \"text\": \"代表的な気になる口コミの抜粋・要約（1文）\"}\n    ],\n    \"source\": \"参照した口コミサイト名（例:OpenWork / エンライトハウス / Lighthouse）\"\n  },\n  \"steps\": [\n    {\"step\": \"①知る\", \"finding\": \"WEB上の所見（事実）\", \"insight\": \"気づき・仮説\", \"ask\": \"初回アポで確認したい数値／ヒアリングへの前振りトーク\"},\n    {\"step\": \"②惹かれる\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"③信頼する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"④決断する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"⑤活躍する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"}\n  ],\n  \"focus\": \"最も伸びしろがありそうなステップ名（例：②惹かれる）\",\n  \"bridge\": \"ヒアリングへ自然につなぐ一言（例：では実際の応募〜入社の数字を一緒に見ながら…）\"\n}\nJSON以外は出力しないこと。";
+ var p="以下の企業のキャリア（中途）採用を、WEB上の公開情報から分析してください。\n企業名: "+c+"\n対象URL（種別つき）:\n"+u+"\n\nこの結果は営業の初回アポで『事前調査のフィードバック→アイスブレイク→ヒアリングの前振り』に使います。\n\n【表示ルール】finding（WEB所見）とinsight（気づき）は、顧客と同席の画面にそのまま表示されます。事実ベースの丁寧な日本語で記述し、WEBの公開情報だけでは判断できない項目（特に④決断・⑤活躍）はfindingを空文字にしてください（『当日ヒアリング』等の内部メモ表現は書かない）。askは営業担当者だけが見るメモ（顧客には非表示）なので、当日の質問文にしてください。reviewsは口コミサイトの内容に基づき、rating・categories（5項目）・quotes（良い/気になる各1つ）・recommend・reviewCountを可能な限り必ず埋めてください（サイトに数値が無い場合も、本文の傾向から5点満点で推定して構いません）。\n\n【重要】出力は下記JSONのみ。前後に説明文やコードブロック記号は付けないこと。\n{\n  \"icebreak\": \"アポ冒頭で使える一言（事前に拝見した上での具体的な称賛＋関心。1文）\",\n  \"summary\": \"全体所感を2〜3文。良い点→伸びしろの順で前向きに。\",\n  \"reviews\": {\n    \"rating\": \"口コミサイトの総合評価（5点満点。例:3.6。不明なら空文字）\",\n    \"reviewCount\": \"口コミ件数（分かれば数値、不明なら空文字）\",\n    \"recommend\": \"満足・推奨の割合%（例:68。不明なら空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"5点満点。不明なら空文字\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ],\n    \"summary\": \"口コミ全体の傾向を1〜2文で\",\n    \"good\": [\"良い評判・強み\", \"\"],\n    \"bad\": [\"気になる評判・懸念点\", \"\"],\n    \"quotes\": [\n      {\"type\": \"good\", \"text\": \"代表的な良い口コミの抜粋・要約（1文）\"},\n      {\"type\": \"bad\", \"text\": \"代表的な気になる口コミの抜粋・要約（1文）\"}\n    ],\n    \"source\": \"参照した口コミサイト名（例:OpenWork / エンライトハウス / Lighthouse）\"\n  },\n  \"steps\": [\n    {\"step\": \"①知る\", \"finding\": \"WEB上の所見（事実）\", \"insight\": \"気づき・仮説\", \"ask\": \"初回アポで確認したい数値／ヒアリングへの前振りトーク\"},\n    {\"step\": \"②惹かれる\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"③信頼する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"④決断する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"⑤活躍する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"}\n  ],\n  \"focus\": \"最も伸びしろがありそうなステップ名（例：②惹かれる）\",\n  \"bridge\": \"ヒアリングへ自然につなぐ一言（例：では実際の応募〜入社の数字を一緒に見ながら…）\"\n}\nJSON以外は出力しないこと。";
  navigator.clipboard.writeText(p).then(function(){var e=document.getElementById("copied");e.style.display="inline";setTimeout(function(){e.style.display="none";},1800);});
 }
 
