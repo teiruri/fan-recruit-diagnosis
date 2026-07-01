@@ -395,15 +395,16 @@ function renderSurvey(){
 
 /* ===== 口コミ・評判分析セクション ===== */
 function ratingColor(r){r=parseFloat(r)||0;return r>=4?"#1f9e6a":r>=3.3?"#0089c4":r>=2.7?"#d98a0c":"#d8453c";}
-function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=150,cy=135,R=100,max=5;
+function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92,max=5;
  function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
- var s='<svg viewBox="0 0 300 275" width="100%" style="display:block;max-width:360px;margin:2px auto">';
+ var s='<svg viewBox="0 0 460 304" width="100%" style="display:block;max-width:480px;margin:2px auto">';
  [1,2,3,4,5].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="'+(lv===5?"#fbfdfe":"none")+'" stroke="#e3ebf0"/>';});
  for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
  var d=[];for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0));var q=pt(i,R*sc/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}
  s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.18)" stroke="#00B0F0" stroke-width="2.5"/>';
- for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0)),col=ratingColor(cats[i].score);var q=pt(i,R*sc/max);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4" fill="'+col+'"/>';
-  var np=pt(i,R+15),anc=Math.abs(np[0]-cx)<6?"middle":(np[0]>cx?"start":"end");s+='<text x="'+np[0].toFixed(1)+'" y="'+np[1].toFixed(1)+'" text-anchor="'+anc+'" font-size="13" font-weight="bold" fill="'+col+'" dominant-baseline="middle">'+esc(cats[i].score)+'</text>';}
+ for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0)),col=ratingColor(cats[i].score);var q=pt(i,R*sc/max);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';
+  var lp=pt(i,R+17),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");
+  s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12.5"><tspan fill="#3a4a53">'+esc(cats[i].name)+'</tspan><tspan fill="'+col+'" font-weight="bold"> '+esc(cats[i].score)+'</tspan></text>';}
  return s+'</svg>';}
 function renderReviews(){var host=document.getElementById("reviews");if(!host)return;var d=getAI(),rv=d&&d.reviews;
  var cats=rv&&rv.categories?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
@@ -415,7 +416,7 @@ function renderReviews(){var host=document.getElementById("reviews");if(!host)re
  var meta=[];if(rv.recommend)meta.push('👍 推奨度 <b style="color:var(--ink)">'+esc(rv.recommend)+'%</b>');if(rv.reviewCount)meta.push('🗒 口コミ '+esc(rv.reviewCount)+'件');
  if(meta.length)h+='<div style="margin-bottom:8px;color:var(--muted);font-size:13px">'+meta.join('　/　')+'</div>';
  if(rv.summary)h+='<div style="line-height:1.75;margin-bottom:6px">'+esc(rv.summary)+'</div>';
- if(cats.length>=3){var leg=cats.map(function(c){var col=ratingColor(c.score);return '<span class="rvlegi"><span class="dot" style="background:'+col+'"></span>'+esc(c.name)+' <b style="color:'+col+'">'+esc(c.score)+'</b></span>';}).join("");h+='<div class="svsub">カテゴリ別スコア（5点満点・レーダー）</div><div class="rvchart">'+radarSVG(cats)+'<div class="rvleg">'+leg+'</div></div>';}
+ if(cats.length>=3){h+='<div class="svsub">カテゴリ別スコア（5点満点・レーダー）</div><div class="rvchart">'+radarSVG(cats)+'</div>';}
  else if(cats.length){h+='<div class="svsub">カテゴリ別スコア（5点満点）</div><div class="rvcats">'+cats.map(function(c){var s=Math.max(0,Math.min(5,parseFloat(c.score)||0)),col=ratingColor(c.score);return '<div class="rvcat"><span class="rvcatn">'+esc(c.name)+'</span><div class="bartrack"><div class="barfill" style="width:'+Math.round(s/5*100)+'%;background:'+col+'"></div></div><span class="rvcats2" style="color:'+col+'">'+esc(c.score)+'</span></div>';}).join("")+'</div>';}
  if(qs.length){h+='<div class="svsub" style="margin-top:11px">代表的な口コミ（抜粋）</div><div class="rvquotes">'+qs.map(function(q){var good=q.type!=="bad";return '<div class="rvquote '+(good?"q-g":"q-b")+'"><b style="color:'+(good?"var(--ok)":"var(--bad)")+'">'+(good?"👍":"⚠️")+'</b> “'+esc(q.text)+'”</div>';}).join("")+'</div>';}
  var gb="";
