@@ -140,9 +140,29 @@ body.mode-meet .svq>span{font-size:15px}
 body.mode-meet .grade .gletter{font-size:58px}
 body.mode-meet .grade .gnum{font-size:24px}
 body.mode-meet .bartrack{height:20px}
+.rpthead{display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(100deg,#0A2A3A,#15607D);color:#fff;border-radius:10px;padding:10px 16px;margin-bottom:13px;flex-wrap:wrap;border-left:4px solid var(--cyan)}
+.rpthead b{font-size:15px}
+.rpthead .rptsub{color:#bfe9f8;font-size:12.5px}
+.rvsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:13px}
+.rvsumc{background:#fff;border:1px solid #dbe3e8;border-top:4px solid var(--cyan);border-radius:10px;padding:11px 12px;text-align:center;box-shadow:0 2px 6px rgba(10,42,58,.05)}
+.rvsumt{font-size:12px;font-weight:bold;color:var(--muted);margin-bottom:4px}
+.rvsumc b{font-size:15px;display:block}
+.rvsumc .rvsumd{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+body.mode-meet .rpthead b{font-size:18px}
+body.mode-meet .rpthead .rptsub{font-size:15px}
+body.mode-meet .rvsumt{font-size:14px}
+body.mode-meet .rvsumc b{font-size:18px}
+@media(max-width:680px){.rvsum{grid-template-columns:1fr}}
 @media(max-width:680px){.grid2{grid-template-columns:1fr}.parrow{transform:rotate(90deg);justify-content:center;width:100%}
 .svnums{overflow-x:auto}}
-@media print{.no-print{display:none!important}.topbar{position:static}body{background:#fff}.card,.svcard{break-inside:avoid}}
+@media print{
+.no-print{display:none!important}
+.topbar{position:static}
+body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.wrap{max-width:none}
+.sec{break-after:avoid;page-break-after:avoid}
+.card,.svcard,.hl,.grid2,#leaks,#scorecard,.scorecard,#chart,.rvchart,.rvquote,.barrow,.rvcat,.bmrow,.rvsum,.rvsumc,.rpthead,.svfind,.cs-script,#consultBridge{break-inside:avoid;page-break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -448,7 +468,12 @@ function renderScorecard(sc,ov,low,reviews){
  var g=grade(ov),gl=lv(ov);
  var bars=names.map(function(n,i){var l=lv(sc[i]),col=cssv(l[1]);return '<div class="barrow"><span class="bl" style="color:'+STC[i]+'">'+n+'</span><div class="bartrack"><div class="barfill" style="width:'+Math.max(3,sc[i])+'%;background:'+col+'"></div></div><span class="bs" style="color:'+col+'">'+sc[i]+' '+l[0]+'</span></div>';}).join("");
  if(reviews&&reviews.rating){var rr=Math.max(0,Math.min(5,parseFloat(reviews.rating)||0));bars+='<div class="barrow"><span class="bl" style="color:#c07d00">口コミ</span><div class="bartrack"><div class="barfill" style="width:'+Math.round(rr/5*100)+'%;background:#F5A623"></div></div><span class="bs" style="color:#c07d00">'+esc(reviews.rating)+'</span></div>';}
- host.innerHTML='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+ov+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div><div class="bars">'+bars+'</div></div><div class="muted" style="margin-top:9px">最も伸びしろ：<b style="color:'+STC[low]+'">'+steps[low].name+'</b>（スコア'+sc[low]+'）　'+esc(pbStep(low)[0].solve)+'</div>';
+ var strong=0;for(var i=1;i<5;i++){if(sc[i]>sc[strong])strong=i;}
+ var comp=document.getElementById("company").value.trim(),today=new Date().toLocaleDateString("ja-JP"),pb=pbStep(low)[0];
+ var head='<div class="rpthead"><div><b>📋 採用力サーベイ 結果</b>'+(comp?'　<span class="rptsub">'+esc(comp)+'</span>':'')+'</div><div class="rptsub">診断日 '+today+'</div></div>';
+ var card='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+ov+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div><div class="bars">'+bars+'</div></div>';
+ var summ='<div class="rvsum"><div class="rvsumc" style="border-top-color:'+cssv(lv(sc[strong])[1])+'"><div class="rvsumt">💪 最も強い</div><b style="color:'+STC[strong]+'">'+names[strong]+'</b><div class="rvsumd">スコア '+sc[strong]+'</div></div><div class="rvsumc" style="border-top-color:var(--bad)"><div class="rvsumt">🎯 最優先の課題</div><b style="color:'+STC[low]+'">'+steps[low].name+'</b><div class="rvsumd">スコア '+sc[low]+'</div></div><div class="rvsumc" style="border-top-color:var(--cyan)"><div class="rvsumt">🚀 次の一手</div><b style="color:var(--cyanD)">'+esc(pb.svc)+'</b><div class="rvsumd">'+esc(pb.solve)+'</div></div></div>';
+ host.innerHTML=head+card+summ;
 }
 
 /* ===== 診断結果の再計算 ===== */
@@ -568,7 +593,7 @@ function state(){return{company:document.getElementById("company").value,urls:ge
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
-function exportJSON(){var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var name=(document.getElementById("company").value.trim()||"採用診断")+".json";var blob=new Blob([JSON.stringify(s,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}
+function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var blob=new Blob([json],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},2000);}catch(e){alert("JSONの書き出しに失敗しました：\n"+(e&&e.message?e.message:e));}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var st=JSON.parse(rd.result);applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e){alert("JSONの読み込みに失敗しました（ファイル形式をご確認ください）");}ev.target.value="";};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
 function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";seedUrls(st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
