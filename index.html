@@ -153,6 +153,16 @@ body.mode-meet .rpthead .rptsub{font-size:15px}
 body.mode-meet .rvsumt{font-size:14px}
 body.mode-meet .rvsumc b{font-size:18px}
 @media(max-width:680px){.rvsum{grid-template-columns:1fr}}
+.cmptbl{display:flex;flex-direction:column;gap:9px}
+.cmprow{border-bottom:1px dashed #eef2f5;padding-bottom:8px}
+.cmpax{font-weight:bold;font-size:13px;margin-bottom:4px;color:var(--ink)}
+.cmpbars{display:flex;flex-direction:column;gap:4px}
+.cmpb{display:flex;align-items:center;gap:8px}
+.cmpl{flex:0 0 34px;font-size:12px;font-weight:bold}
+.cmpb .bartrack{flex:1;height:13px}
+.cmps{flex:0 0 26px;text-align:right;font-weight:bold;font-size:12.5px}
+.cmpn{margin-top:3px;font-size:11.5px}
+body.mode-meet .cmpax{font-size:15px}
 .goalbar{position:relative;height:20px;background:#eef3f6;border-radius:99px;overflow:hidden;margin-top:9px}
 .goalfill{height:100%;border-radius:99px;transition:width .3s}
 body.mode-meet .goalbar{height:26px}
@@ -210,13 +220,22 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     <div class="muted" style="margin-top:10px;text-align:center">最重視：候補者を“承諾者”に引き上げる<b style="color:var(--cyanD)">「気づき」</b>　／　無料で双方<b style="color:var(--cyanD)">“軽い”</b>運用（事前にAIで7〜8割、当日は数値の穴埋めだけ）</div>
   </div>
 
-  <div class="sec prep-only">関連URL（WEB一次分析の対象）</div>
+  <div class="sec prep-only">自社の関連URL（WEB一次分析の対象）</div>
   <div class="card prep-only">
     <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:7px">
       <span class="muted">採用サイト・求人原稿・口コミサイト など複数可</span>
-      <button class="btn" type="button" onclick="addUrl()">＋ URLを追加</button>
+      <button class="btn" type="button" onclick="addUrl('urls')">＋ URLを追加</button>
     </div>
     <div id="urls"></div>
+  </div>
+
+  <div class="sec prep-only">競合の関連URL（比較対象・任意）</div>
+  <div class="card prep-only">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:7px">
+      <span class="muted">競合の 採用サイト・求人原稿・口コミサイト（入力すると口コミ・WEB比較が表示されます）</span>
+      <button class="btn" type="button" onclick="addUrl('rivalUrls')">＋ URLを追加</button>
+    </div>
+    <div id="rivalUrls"></div>
   </div>
 
   <!-- ===== アポ商談モード：採用の問診カルテ ===== -->
@@ -231,6 +250,12 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   <div class="sec prep-only">口コミ・評判分析</div>
   <div class="sec meet-only">② 口コミ・評判分析｜候補者から見た御社</div>
   <div class="card"><div id="reviews"></div></div>
+
+  <div id="compareWrap">
+    <div class="sec prep-only">競合比較（口コミ・WEB情報）</div>
+    <div class="sec meet-only">競合比較｜自社 vs 競合（口コミ・WEB情報）</div>
+    <div class="card"><div id="compare"></div></div>
+  </div>
 
   <div class="meet-only" id="stepper"></div>
 
@@ -461,6 +486,35 @@ function renderReviews(){var host=document.getElementById("reviews");if(!host)re
  host.innerHTML=h;
 }
 
+/* ===== 競合比較 ===== */
+function radarCompareSVG(selfC,rivalC){var n=selfC.length;if(n<3)return"";var cx=230,cy=152,R=92,max=5;
+ function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+ function poly(cats,color,fill,w){var d=[];for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i]&&cats[i].score)||0));var q=pt(i,R*sc/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}return '<polygon points="'+d.join(' ')+'" fill="'+fill+'" stroke="'+color+'" stroke-width="'+w+'"/>';}
+ var s='<svg viewBox="0 0 460 304" width="100%" style="display:block;max-width:480px;margin:2px auto">';
+ [1,2,3,4,5].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="#e3ebf0"/>';});
+ for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
+ s+=poly(rivalC,"#F39800","rgba(243,152,0,.14)",2);
+ s+=poly(selfC,"#00B0F0","rgba(0,176,240,.20)",2.5);
+ for(var i=0;i<n;i++){var lp=pt(i,R+15),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12" fill="#3a4a53">'+esc(selfC[i].name)+'</text>';}
+ return s+'</svg>';}
+function renderCompare(){var wrap=document.getElementById("compareWrap");if(!wrap)return;
+ var hasRival=getUrls("rivalUrls").length>0,meet=/mode-meet/.test(document.body.className);
+ wrap.style.display=(meet&&!hasRival)?"none":"";
+ if(meet&&!hasRival)return;
+ var host=document.getElementById("compare");if(!host)return;
+ var d=getAI(),comp=d&&d.competitor,cmp=(d&&d.compare&&d.compare.filter)?d.compare.filter(function(x){return x&&x.axis;}):[];
+ if(!hasRival){host.innerHTML='<div class="rvhead"><b>🆚 競合比較</b></div><div class="muted">準備ページで競合の採用サイト・求人・口コミサイトのURLを入力し、AI分析（プロンプトをコピー→分析→貼り戻し）を反映すると、口コミレーダー比較とWEB情報の比較が表示されます。</div>';return;}
+ var selfCats=(d&&d.reviews&&d.reviews.categories)?d.reviews.categories.filter(function(c){return c&&c.name&&c.score;}):[];
+ var rivalCats=(comp&&comp.categories)?comp.categories.filter(function(c){return c&&c.name;}):[];
+ var hasData=(comp&&(comp.name||comp.rating||rivalCats.length))||cmp.length;
+ if(!hasData){host.innerHTML='<div class="rvhead"><b>🆚 競合比較</b></div><div class="muted">AI分析結果に競合データがありません。「① AI分析プロンプトをコピー」を押し直し（競合URLを含めて）、再度分析→貼り戻してください。</div>';return;}
+ var rn=(comp&&comp.name)?comp.name:"競合";
+ var h='<div class="rvhead"><b>🆚 競合比較｜自社 vs '+esc(rn)+'</b></div>';
+ if(selfCats.length>=3&&rivalCats.length>=3){h+='<div class="svsub">口コミ カテゴリ比較（レーダー）</div><div class="rvchart">'+radarCompareSVG(selfCats,rivalCats)+'<div class="rvleg"><span class="rvlegi"><span class="dot" style="background:#00B0F0"></span>自社'+((d.reviews&&d.reviews.rating)?" "+esc(d.reviews.rating):"")+'</span><span class="rvlegi"><span class="dot" style="background:#F39800"></span>'+esc(rn)+(comp.rating?" "+esc(comp.rating):"")+'</span></div></div>';}
+ if(cmp.length){h+='<div class="svsub">WEB情報 総合比較（5点満点）</div><div class="cmptbl">';cmp.forEach(function(x){var sv=Math.max(0,Math.min(5,parseFloat(x.self)||0)),rv=Math.max(0,Math.min(5,parseFloat(x.rival)||0));h+='<div class="cmprow"><div class="cmpax">'+esc(x.axis)+'</div><div class="cmpbars"><div class="cmpb"><span class="cmpl" style="color:#0089c4">自社</span><div class="bartrack"><div class="barfill" style="width:'+Math.round(sv/5*100)+'%;background:#00B0F0"></div></div><span class="cmps" style="color:#0089c4">'+(x.self||"-")+'</span></div><div class="cmpb"><span class="cmpl" style="color:#c07a00">競合</span><div class="bartrack"><div class="barfill" style="width:'+Math.round(rv/5*100)+'%;background:#F39800"></div></div><span class="cmps" style="color:#c07a00">'+(x.rival||"-")+'</span></div></div>'+(x.note?'<div class="muted cmpn">'+esc(x.note)+'</div>':'')+'</div>';});h+='</div>';}
+ h+='<div class="muted" style="margin-top:8px">※候補者は必ず競合と見比べます。相対的にどこで見劣り／優位かを一緒に確認します。</div>';
+ host.innerHTML=h;}
+
 /* ===== 事前カルテ（導入） ===== */
 function renderMeetAi(){var m=document.getElementById("meetAi");if(m){var t=document.getElementById("aiNote").value,d=parseAI(t);
  if(!d){m.innerHTML=t.trim()?'<div class="muted" style="margin-bottom:6px">※AIの出力をJSON形式で貼り付けると、要約・トークに自動整形されます（現在は原文表示）。</div><div style="white-space:pre-wrap">'+esc(t)+'</div>':'（準備モードでAI分析結果を貼り付けると、ここに整形表示されます）';}
@@ -470,7 +524,7 @@ function renderMeetAi(){var m=document.getElementById("meetAi");if(m){var t=docu
   if(d.focus)h+='<div style="margin:8px 0 4px"><b>特に伸ばせそうなポイント（事前の見立て）：</b><span style="color:var(--cyanD);font-weight:bold">'+esc(d.focus)+'</span></div>';
   m.innerHTML=h||'<span class="muted">AI分析の主要項目が空です。</span>';
  }}
- renderReviews();renderSurvey();
+ renderReviews();renderSurvey();renderCompare();
 }
 function onAi(){var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();recompute();}
 function periodStr(){var f=document.getElementById("periodFrom").value,t=document.getElementById("periodTo").value;if(!f&&!t)return"";return (f||"（未定）")+" 〜 "+(t||"（未定）");}
@@ -597,39 +651,41 @@ function recompute(){
 
 /* ===== URL入力 ===== */
 var URLTYPES=["採用サイト","求人原稿","コーポレートサイト","口コミサイト","SNS","その他"];
-function urlRow(type,val){
- var w=document.getElementById("urls");
+function urlRow(hostId,type,val){
+ var w=document.getElementById(hostId),rival=(hostId==="rivalUrls");
  var row=document.createElement("div");row.className="row urlrow";row.style.marginBottom="6px";
  var sel=document.createElement("select");URLTYPES.forEach(function(t){var o=document.createElement("option");o.value=t;o.textContent=t;if(t===type)o.selected=true;sel.appendChild(o);});sel.style.width="150px";sel.style.flex="none";
  var inp=document.createElement("input");inp.type="text";inp.placeholder="https://…";inp.value=val||"";inp.style.flex="1";inp.style.minWidth="180px";
- var del=document.createElement("button");del.className="btn";del.type="button";del.textContent="✕";del.title="削除";del.style.flex="none";del.onclick=function(){row.remove();};
+ var del=document.createElement("button");del.className="btn";del.type="button";del.textContent="✕";del.title="削除";del.style.flex="none";del.onclick=function(){row.remove();if(rival)renderCompare();};
+ if(rival){inp.oninput=function(){renderCompare();};sel.onchange=function(){renderCompare();};}
  row.appendChild(sel);row.appendChild(inp);row.appendChild(del);w.appendChild(row);
 }
-function addUrl(type,val){urlRow(type||"その他",val||"");}
-function getUrls(){return [].slice.call(document.querySelectorAll("#urls .urlrow")).map(function(r){return {type:r.querySelector("select").value,url:r.querySelector("input").value.trim()};}).filter(function(u){return u.url;});}
-function seedUrls(list){var w=document.getElementById("urls");w.innerHTML="";if(list&&list.length){list.forEach(function(u){urlRow(u.type,u.url);});}else{urlRow("採用サイト","");urlRow("求人原稿","");urlRow("口コミサイト","");}}
+function addUrl(hostId){urlRow(hostId,"その他","");}
+function getUrls(hostId){return [].slice.call(document.querySelectorAll("#"+hostId+" .urlrow")).map(function(r){return {type:r.querySelector("select").value,url:r.querySelector("input").value.trim()};}).filter(function(u){return u.url;});}
+function seedUrls(hostId,list){var w=document.getElementById(hostId);w.innerHTML="";if(list&&list.length){list.forEach(function(u){urlRow(hostId,u.type,u.url);});}else{["採用サイト","求人原稿","口コミサイト"].forEach(function(t){urlRow(hostId,t,"");});}}
 function copyPrompt(){
  var c=document.getElementById("company").value||"（企業名）";
- var us=getUrls(),u=us.length?us.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（URL未入力）";
- var p="以下の企業のキャリア（中途）採用を、WEB上の公開情報から分析してください。\n企業名: "+c+"\n対象職種: "+(document.getElementById("jobtitle").value||"（未入力）")+"\n対象期間: "+(periodStr()||"（未入力）")+"\n対象URL（種別つき）:\n"+u+"\n\nこの結果は営業の初回アポで『事前調査のフィードバック→アイスブレイク→ヒアリングの前振り』に使います。\n\n【表示ルール】finding（WEB所見）とinsight（気づき）は、顧客と同席の画面にそのまま表示されます。事実ベースの丁寧な日本語で記述し、WEBの公開情報だけでは判断できない項目（特に④決断・⑤活躍）はfindingを空文字にしてください（『当日ヒアリング』等の内部メモ表現は書かない）。askは営業担当者だけが見るメモ（顧客には非表示）なので、当日の質問文にしてください。reviewsは口コミサイトの内容に基づき、rating・categories（5項目）・quotes（良い/気になる各1つ）・recommend・reviewCountを可能な限り必ず埋めてください（サイトに数値が無い場合も、本文の傾向から5点満点で推定して構いません）。\n\n【重要】出力は下記JSONのみ。前後に説明文やコードブロック記号は付けないこと。\n{\n  \"icebreak\": \"アポ冒頭で使える一言（事前に拝見した上での具体的な称賛＋関心。1文）\",\n  \"summary\": \"全体所感を2〜3文。良い点→伸びしろの順で前向きに。\",\n  \"reviews\": {\n    \"rating\": \"口コミサイトの総合評価（5点満点。例:3.6。不明なら空文字）\",\n    \"reviewCount\": \"口コミ件数（分かれば数値、不明なら空文字）\",\n    \"recommend\": \"満足・推奨の割合%（例:68。不明なら空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"5点満点。不明なら空文字\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ],\n    \"summary\": \"口コミ全体の傾向を1〜2文で\",\n    \"good\": [\"良い評判・強み\", \"\"],\n    \"bad\": [\"気になる評判・懸念点\", \"\"],\n    \"quotes\": [\n      {\"type\": \"good\", \"text\": \"代表的な良い口コミの抜粋・要約（1文）\"},\n      {\"type\": \"bad\", \"text\": \"代表的な気になる口コミの抜粋・要約（1文）\"}\n    ],\n    \"source\": \"参照した口コミサイト名（例:OpenWork / エンライトハウス / Lighthouse）\"\n  },\n  \"steps\": [\n    {\"step\": \"①知る\", \"finding\": \"WEB上の所見（事実）\", \"insight\": \"気づき・仮説\", \"ask\": \"初回アポで確認したい数値／ヒアリングへの前振りトーク\"},\n    {\"step\": \"②惹かれる\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"③信頼する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"④決断する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"⑤活躍する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"}\n  ],\n  \"focus\": \"最も伸びしろがありそうなステップ名（例：②惹かれる）\",\n  \"bridge\": \"ヒアリングへ自然につなぐ一言（例：では実際の応募〜入社の数字を一緒に見ながら…）\"\n}\nJSON以外は出力しないこと。";
+ var us=getUrls("urls"),u=us.length?us.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（URL未入力）";
+ var rs=getUrls("rivalUrls"),ru=rs.length?rs.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（競合URLなし）";
+ var p="以下の企業のキャリア（中途）採用を、WEB上の公開情報から分析してください。\n企業名: "+c+"\n対象職種: "+(document.getElementById("jobtitle").value||"（未入力）")+"\n対象期間: "+(periodStr()||"（未入力）")+"\n自社の対象URL（種別つき）:\n"+u+"\n競合の対象URL（比較用・種別つき）:\n"+ru+"\n\nこの結果は営業の初回アポで『事前調査のフィードバック→アイスブレイク→ヒアリングの前振り』に使います。\n\n【表示ルール】finding（WEB所見）とinsight（気づき）は、顧客と同席の画面にそのまま表示されます。事実ベースの丁寧な日本語で記述し、WEBの公開情報だけでは判断できない項目（特に④決断・⑤活躍）はfindingを空文字にしてください（『当日ヒアリング』等の内部メモ表現は書かない）。askは営業担当者だけが見るメモ（顧客には非表示）なので、当日の質問文にしてください。reviewsは口コミサイトの内容に基づき、rating・categories（5項目）・quotes（良い/気になる各1つ）・recommend・reviewCountを可能な限り必ず埋めてください（サイトに数値が無い場合も、本文の傾向から5点満点で推定して構いません）。\n\n【重要】出力は下記JSONのみ。前後に説明文やコードブロック記号は付けないこと。\n{\n  \"icebreak\": \"アポ冒頭で使える一言（事前に拝見した上での具体的な称賛＋関心。1文）\",\n  \"summary\": \"全体所感を2〜3文。良い点→伸びしろの順で前向きに。\",\n  \"reviews\": {\n    \"rating\": \"口コミサイトの総合評価（5点満点。例:3.6。不明なら空文字）\",\n    \"reviewCount\": \"口コミ件数（分かれば数値、不明なら空文字）\",\n    \"recommend\": \"満足・推奨の割合%（例:68。不明なら空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"5点満点。不明なら空文字\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ],\n    \"summary\": \"口コミ全体の傾向を1〜2文で\",\n    \"good\": [\"良い評判・強み\", \"\"],\n    \"bad\": [\"気になる評判・懸念点\", \"\"],\n    \"quotes\": [\n      {\"type\": \"good\", \"text\": \"代表的な良い口コミの抜粋・要約（1文）\"},\n      {\"type\": \"bad\", \"text\": \"代表的な気になる口コミの抜粋・要約（1文）\"}\n    ],\n    \"source\": \"参照した口コミサイト名（例:OpenWork / エンライトハウス / Lighthouse）\"\n  },\n  \"steps\": [\n    {\"step\": \"①知る\", \"finding\": \"WEB上の所見（事実）\", \"insight\": \"気づき・仮説\", \"ask\": \"初回アポで確認したい数値／ヒアリングへの前振りトーク\"},\n    {\"step\": \"②惹かれる\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"③信頼する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"④決断する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"},\n    {\"step\": \"⑤活躍する\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\"}\n  ],\n  \"focus\": \"最も伸びしろがありそうなステップ名（例：②惹かれる）\",\n  \"bridge\": \"ヒアリングへ自然につなぐ一言（例：では実際の応募〜入社の数字を一緒に見ながら…）\",\n  \"competitor\": {\n    \"name\": \"競合の企業名（競合URLがある場合のみ。無ければ空文字）\",\n    \"rating\": \"競合の口コミ総合評価（5点満点。無ければ空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ]\n  },\n  \"compare\": [\n    {\"axis\": \"採用サイトの充実度\", \"self\": \"5点満点\", \"rival\": \"5点満点\", \"note\": \"一言\"},\n    {\"axis\": \"求人の訴求力\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"口コミ評価\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"情報量・発信\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"第一印象・選ばれやすさ\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"}\n  ]\n}\n【競合について】競合URLがある場合のみ competitor と compare を埋めてください（competitor.categories は自社と同じ5項目名で5点満点、compare の self/rival も5点満点）。競合URLが無い場合は competitor.name/rating を空、competitor.categories の score を空、compare の self/rival を空にしてください。\nJSON以外は出力しないこと。";
  navigator.clipboard.writeText(p).then(function(){var e=document.getElementById("copied");e.style.display="inline";setTimeout(function(){e.style.display="none";},1800);});
 }
 
 /* ===== 保存・読込（localStorage / JSON） ===== */
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");updateMeetHead();buildStepper();renderMeetAi();recompute();window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls(),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
 function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var blob=new Blob([json],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},2000);}catch(e){alert("JSONの書き出しに失敗しました：\n"+(e&&e.message?e.message:e));}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var st=JSON.parse(rd.result);applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e){alert("JSONの読み込みに失敗しました（ファイル形式をご確認ください）");}ev.target.value="";};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";seedUrls(st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls();renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});setMode("prep");recompute();
+seedUrls("urls");seedUrls("rivalUrls");renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});setMode("prep");recompute();
 </script>
 </body>
 </html>
