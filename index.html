@@ -172,20 +172,52 @@ body.mode-meet .cmpax{font-size:15px}
 body.mode-meet .goalbar{height:26px}
 @media(max-width:680px){.grid2{grid-template-columns:1fr}.parrow{transform:rotate(90deg);justify-content:center;width:100%}
 .svnums{overflow-x:auto}}
+/* ライト診断 */
+#liteWrap{display:none}
+body.mode-lite #liteWrap{display:block}
+body.mode-lite .wrap>*:not(#liteWrap){display:none!important}
+.litechip{font-size:14px;padding:9px 15px}
+/* 監修クレジット */
+.credit{background:#f4f8fb;border:1px solid #dbe3e8;border-left:4px solid var(--dark);border-radius:8px;padding:9px 12px;margin-top:11px;font-size:13px}
+.credit b{color:var(--dark)}
+body.mode-meet .credit{font-size:15px}
+/* 報告書（印刷用） */
+#report{display:none}
+.rpage{max-width:720px;margin:0 auto;color:#16242c}
+.rhead{border-bottom:3px solid var(--cyan);padding-bottom:8px;margin-bottom:12px}
+.rttl{font-size:22px;font-weight:bold;color:var(--dark)}
+.rsub{font-size:15px;color:var(--cyanD);font-weight:bold;margin-top:2px}
+.rmeta{font-size:11px;color:#586872;margin-top:3px}
+.rgrade{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,#eef9fe,#dff1fb);border:1px solid #bfe6f8;border-radius:12px;padding:12px 18px;margin:10px 0}
+.rgletter{font-size:52px;font-weight:bold;line-height:1}
+.rgnum{font-size:24px;font-weight:bold}.rgnum span{font-size:14px;color:#586872}
+.rglabel{font-weight:bold}
+.rsec{font-weight:bold;color:var(--dark);border-left:4px solid var(--cyan);padding-left:9px;margin:16px 0 8px;font-size:14px}
+.rnote{background:#eef9fe;border:1px solid #bfe6f8;border-radius:8px;padding:10px 13px;font-size:13px;margin-top:8px}
+.rtbl{width:100%;border-collapse:collapse;font-size:13px}
+.rtbl th,.rtbl td{border:1px solid #dbe3e8;padding:6px 9px}
+.rtbl th{background:#eef4f8}
+.rul{margin:6px 0 0;padding-left:20px;font-size:13px}.rul li{margin:4px 0}
+.rmove{border:1px solid #dbe3e8;border-left:4px solid var(--cyan);border-radius:8px;padding:9px 12px;margin-bottom:9px;font-size:13px}
+.rmt{font-weight:bold;margin-bottom:3px}
+.rcta{background:#eaf7fd;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:12.5px}
+.rfoot{margin-top:14px;font-size:11px;color:#586872;text-align:center;border-top:1px solid #dbe3e8;padding-top:8px}
 @media print{
 .no-print{display:none!important}
-.topbar{position:static}
+.topbar{display:none!important}
+.wrap{display:none!important}
+#report{display:block}
 body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.wrap{max-width:none}
-.sec{break-after:avoid;page-break-after:avoid}
-.chiphelp{display:none}
-.card,.svcard,.hl,.grid2,#leaks,#scorecard,.scorecard,#chart,.rvchart,.rvquote,.barrow,.rvcat,.bmrow,.rvsum,.rvsumc,.rpthead,.svfind,.cs-script,.mvcta,#consultBridge{break-inside:avoid;page-break-inside:avoid}
+.rpage{page-break-after:always}
+.rpage:last-child{page-break-after:auto}
+.rsec,.rmove,.rtbl,.rgrade,.rnote{break-inside:avoid;page-break-inside:avoid}
 }
 </style>
 </head>
 <body>
 <div class="topbar no-print">
   <div class="logo"><b>FAN</b> 採用診断 <span style="font-size:12px;opacity:.7">by KAKEHASHISKY</span></div>
+  <button class="btn modebtn" id="mLite" type="button" onclick="setMode('lite')">⚡ ライト</button>
   <button class="btn modebtn act" id="mPrep" type="button" onclick="setMode('prep')">📋 準備</button>
   <button class="btn modebtn" id="mMeet" type="button" onclick="setMode('meet')">🤝 アポ商談</button>
   <div class="sp"></div>
@@ -195,10 +227,20 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   <button class="btn" onclick="saveCase()">保存</button>
   <button class="btn" onclick="exportJSON()" title="この診断をJSONファイルで書き出し">⬇ JSON</button>
   <label class="btn" title="JSONファイルを読み込み" style="cursor:pointer">⬆ JSON<input type="file" accept="application/json,.json" onchange="importJSON(event)" style="display:none"></label>
-  <button class="btn pri" onclick="window.print()">PDF出力</button>
+  <button class="btn pri" onclick="printReport()">PDF出力</button>
 </div>
 
 <div class="wrap">
+
+  <div id="liteWrap">
+    <div class="sec">⚡ 1分でわかる｜内定辞退・取りこぼしリスク診断（3問）</div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:4px">3問に答えるだけで、採用の取りこぼしリスクを即判定。テレアポ・反響時のフックにどうぞ。</div>
+      <div id="liteQ"></div>
+      <div id="liteResult"></div>
+      <div style="margin-top:14px"><button class="btn pri" onclick="setMode('meet')">▶ 無料で詳しく診断する（完全版へ）</button></div>
+    </div>
+  </div>
 
   <div class="sec">診断の前提（冒頭に一緒に確認）</div>
   <div class="card">
@@ -292,6 +334,13 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     <div class="muted" style="margin-top:8px">※「固定目安」は標準値（調整不可）。連続する面接（面接間）が複数ある場合は先頭のみ入力（他は共通）。</div>
   </div>
 
+  <div class="sec prep-only">権威づけ（監修・任意）</div>
+  <div class="card prep-only">
+    <div class="row" style="gap:6px;margin-bottom:8px"><span class="muted">監修者名</span><input type="text" id="supervisor" placeholder="例：採用コンサルタント ○○" style="width:240px"></div>
+    <div class="row" style="gap:6px"><span class="muted">監修コメント</span><input type="text" id="supervisorC" placeholder="例：まずは③信頼（対応スピード）から着手を推奨します" style="flex:1;min-width:240px"></div>
+    <div class="muted" style="margin-top:7px">入力すると、結果画面と報告書に「○○ 監修」として表示されます。</div>
+  </div>
+
   <div class="sec prep-only">問診＆数値入力（FANサイクル順）</div>
   <div class="sec meet-only">③ 問診＆数値｜FANサイクル順に、質問→人数→取り組みを一体で確認</div>
   <div class="no-print" style="margin-bottom:9px"><button class="btn" type="button" onclick="autoFillFunnel()">▶ 応募数×目安で想定人数を自動入力</button> <span class="muted">目安ベースの想定値です。実数がわかる箇所は上書きしてください</span></div>
@@ -331,6 +380,8 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   <div class="muted" style="text-align:center;margin-top:18px">本診断は無料です。詳細のご提案はお気軽にご相談ください。　株式会社カケハシスカイ　TEL:0120-342-834</div>
 </div>
 
+<div id="report"></div>
+
 <script>
 var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55}};
 var bm=Object.assign({},presets["標準"]);
@@ -338,6 +389,13 @@ var defs=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casu
 var cfg={doc:true,casual:false,i1:true,i2:false,final:true};
 var vals={};
 var hpnotes={};
+var R={filled:false};
+var liteAns=[null,null,null];
+var LITEQ=[
+ {q:"① 候補者はWEB（採用サイト・口コミ）で競合と比較しても『選ばれる』自信がありますか？",opts:[["自信あり",0],["どちらとも言えない",1],["やや不安・情報が手薄",2]]},
+ {q:"② 応募から初回連絡までのスピードは？",opts:[["1営業日以内",0],["ばらつく",1],["数日かかることがある",2]]},
+ {q:"③ 内定を出した後の辞退は多いですか？",opts:[["少ない（〜10%）",0],["普通（10〜30%）",1],["多い（30%〜）",2]]}
+];
 var names=["①知る","②惹かれる","③信頼する","④決断する","⑤活躍する"];
 var STC=["#2F66A8","#1F8C84","#6A5BAE","#B9822A","#BD5E80"];
 var STP=["#DDEAF8","#D2F0EC","#E8E3F6","#FBEDD3","#FAE1EA"];
@@ -551,11 +609,13 @@ function renderScorecard(sc,ov,low,reviews){
  var head='<div class="rpthead"><div><b>📋 中途採用 成功確率アセスメント</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div><div class="muted" style="margin:-4px 0 11px;font-size:11.5px">※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムで、選考各段階の到達度を算出しています。</div>';
  var card='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+ov+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div><div class="bars">'+bars+'</div></div>';
  var summ='<div class="rvsum"><div class="rvsumc" style="border-top-color:'+cssv(lv(sc[strong])[1])+'"><div class="rvsumt">💪 最も強い</div><b style="color:'+STC[strong]+'">'+names[strong]+'</b><div class="rvsumd">スコア '+sc[strong]+'</div></div><div class="rvsumc" style="border-top-color:var(--bad)"><div class="rvsumt">🎯 最優先の課題</div><b style="color:'+STC[low]+'">'+steps[low].name+'</b><div class="rvsumd">スコア '+sc[low]+'</div></div><div class="rvsumc" style="border-top-color:var(--cyan)"><div class="rvsumt">🚀 次の一手</div><b style="color:var(--cyanD)">'+esc(pb.svc)+'</b><div class="rvsumd">'+esc(pb.solve)+'</div></div></div>';
- host.innerHTML=head+card+summ;
+ var sup=document.getElementById("supervisor").value.trim(),supC=document.getElementById("supervisorC").value.trim();
+ var credit=sup?('<div class="credit">🎓 <b>'+esc(sup)+' 監修</b>'+(supC?'　'+esc(supC):'')+'</div>'):'';
+ host.innerHTML=head+card+summ+credit;
 }
 
 /* ===== 診断結果の再計算 ===== */
-function blankOutputs(){var msg='<span class="muted">選考ファネルの人数をすべて入力すると、ここに診断結果（スコア）が表示されます。</span>';
+function blankOutputs(){R={filled:false};var msg='<span class="muted">選考ファネルの人数をすべて入力すると、ここに診断結果（スコア）が表示されます。</span>';
  var leaks=document.getElementById("leaks");if(leaks)leaks.innerHTML='<div style="grid-column:1/3">'+msg+'</div>';
  ["scorecard","effect","moves","insight"].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=msg;});
  ["chart","cols"].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML="";});
@@ -637,7 +697,7 @@ function recompute(){
  var reason=(worst>=0)?'<div class="hl" style="margin:0 0 12px"><b style="color:var(--cyanD)">なぜこの打ち手が最優先か（ロジック）</b><div style="margin-top:3px">「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が <b>'+wpc+'%</b>（目安 '+wb+'%・<b style="color:var(--bad)">−'+Math.max(0,wb-wpc)+'pt</b>）と、選考全体で最も差が大きいためです。ここを目安まで戻すことが、承諾数への影響が最大になります。</div></div>':'';
  mv.innerHTML=reason+(weak.length?'':'<span class="muted">各ステップ良好。定着・リファラルで“ファン化”を強化。</span>');
  function mvLabel(no,txt,col){return '<span style="display:inline-block;min-width:96px;vertical-align:top;font-size:11px;font-weight:bold;color:'+col+'">'+no+' '+txt+'</span>';}
- weak.forEach(function(o,idx){var es=pbStep(o.i).slice(0,2);var r=document.createElement("div");r.style.marginBottom="16px";r.innerHTML='<div class="row" style="margin-bottom:6px"><span class="badge" style="background:'+STP[o.i]+';color:'+STC[o.i]+';box-shadow:none">'+(idx+1)+'</span><b style="color:'+STC[o.i]+'">'+steps[o.i].name+'</b><span class="muted">のステップを強化</span></div>'+es.map(function(p){return '<div style="margin:0 0 9px 30px;background:#fff;border:1px solid var(--line);border-left:3px solid '+STC[o.i]+';border-radius:8px;padding:10px 13px">'+
+ weak.forEach(function(o,idx){var es=pbStep(o.i).slice(0,2);var r=document.createElement("div");r.style.marginBottom="16px";r.innerHTML='<div class="row" style="margin-bottom:6px"><span class="badge" style="background:'+STP[o.i]+';color:'+STC[o.i]+';box-shadow:none">'+(idx+1)+'</span><b style="color:'+STC[o.i]+'">'+steps[o.i].name+'</b><span class="muted">のステップを強化</span></div><div class="muted" style="margin:0 0 6px 30px">根拠：'+steps[o.i].name+'のスコア '+o.sc+'（目安65を下回るため優先度が高い）</div>'+es.map(function(p){return '<div style="margin:0 0 9px 30px;background:#fff;border:1px solid var(--line);border-left:3px solid '+STC[o.i]+';border-radius:8px;padding:10px 13px">'+
    '<div style="margin-bottom:5px">'+mvLabel("①","課題の特定","var(--bad)")+'<span>'+p.issue+'</span></div>'+
    '<div style="margin-bottom:5px">'+mvLabel("②","解決策（施策）","var(--warn)")+'<b>'+p.solve+'</b></div>'+
    '<div>'+mvLabel("③","活用サービス","var(--cyanD)")+'<span style="background:var(--cyanL);color:var(--cyanD);font-weight:bold;border-radius:6px;padding:2px 9px">'+p.svc+'</span></div>'+
@@ -652,6 +712,7 @@ function recompute(){
  if(accRate>0){var declR=Math.round((1-accRate)*100);lines.push('<span class="muted">参考：内定辞退率の市場平均は約35%。御社は約<b style="color:'+(declR>35?"var(--bad)":"var(--ok)")+'">'+declR+'%</b>'+(declR>35?"（平均より高め＝クロージングに伸びしろ）":"（平均並み〜良好）")+'</span>');}
  ins.innerHTML='<b style="color:var(--cyanD)">気づき</b><ul style="margin:6px 0 0;padding-left:20px">'+lines.map(function(l){return '<li>'+l+'</li>';}).join("")+'</ul>';
 
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,impLo:impLo,impHi:impHi,target:vals.target||0};
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
  var cb=document.getElementById("consultBridge");
@@ -684,20 +745,63 @@ function copyPrompt(){
 }
 
 /* ===== 保存・読込（localStorage / JSON） ===== */
-function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");updateMeetHead();buildStepper();renderMeetAi();recompute();window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
+function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,supervisor:document.getElementById("supervisor").value,supervisorC:document.getElementById("supervisorC").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
 function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var blob=new Blob([json],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},2000);}catch(e){alert("JSONの書き出しに失敗しました：\n"+(e&&e.message?e.message:e));}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var st=JSON.parse(rd.result);applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e){alert("JSONの読み込みに失敗しました（ファイル形式をご確認ください）");}ev.target.value="";};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("supervisor").value=st.supervisor||"";document.getElementById("supervisorC").value=st.supervisorC||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
+/* ===== ライト診断（3問フック） ===== */
+function renderLite(){var host=document.getElementById("liteQ");if(!host)return;
+ host.innerHTML=LITEQ.map(function(Q,i){return '<div style="margin:15px 0"><div style="font-weight:bold;margin-bottom:7px">'+esc(Q.q)+'</div><div class="row">'+Q.opts.map(function(o,j){return '<span class="chip litechip'+(liteAns[i]===j?" on":"")+'" data-q="'+i+'" data-o="'+j+'">'+esc(o[0])+'</span>';}).join("")+'</div></div>';}).join("");
+ host.querySelectorAll(".litechip").forEach(function(c){c.onclick=function(){liteAns[+c.dataset.q]=+c.dataset.o;renderLite();};});
+ var res=document.getElementById("liteResult");if(!res)return;
+ if(liteAns.indexOf(null)>=0){res.innerHTML='<div class="muted" style="margin-top:6px">3問すべて選ぶと、その場でリスク判定が表示されます。</div>';return;}
+ var sc=liteAns.reduce(function(a,v,idx){return a+LITEQ[idx].opts[v][1];},0);
+ var lvl=sc<=1?["低","var(--ok)","取りこぼしリスクは低め。伸ばすなら定着・リファラルでファン化を。"]:sc<=3?["中","var(--warn)","一部に取りこぼしの兆候。WEB訴求・対応スピード・クロージングのどこかに伸びしろがあります。"]:["高","var(--bad)","取りこぼしリスク大。WEB比較負け・対応の遅れ・内定辞退のいずれかが起きている可能性が高いです。"];
+ var pct=Math.round(sc/6*100);
+ res.innerHTML='<div class="hl" style="margin-top:12px"><div class="row" style="justify-content:space-between"><b style="font-size:15px">判定：内定辞退・取りこぼしリスク</b><b style="font-size:24px;color:'+lvl[1]+'">'+lvl[0]+'</b></div><div class="goalbar" style="margin-top:8px"><div class="goalfill" style="width:'+pct+'%;background:'+lvl[1]+'"></div></div><div style="margin-top:8px">'+lvl[2]+'</div><div class="muted" style="margin-top:6px">※簡易判定です。無料の「完全版」では、選考ファネルの数値をもとに具体的な打ち手・期待効果まで診断できます。</div></div>';
+}
+
+/* ===== 報告書（PDF出力用） ===== */
+function radarScoreSVG(sc){var n=5,cx=230,cy=162,R=112,max=100;
+ function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+ var s='<svg viewBox="0 0 460 336" width="100%" style="max-width:460px;display:block;margin:4px auto">';
+ [20,40,60,80,100].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="#e3ebf0"/>';});
+ for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
+ var d=[];for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}
+ s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.20)" stroke="#00B0F0" stroke-width="2.5"/>';
+ for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max),col=cssv(lv(sc[i])[1]);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';var lp=pt(i,R+18),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="13"><tspan fill="#3a4a53">'+esc(names[i])+' </tspan><tspan fill="'+col+'" font-weight="bold">'+sc[i]+'</tspan></text>';}
+ return s+'</svg>';}
+function reportFunnel(){var act=activeDefs(),rows="";for(var i=0;i<act.length;i++){var k=act[i].k,cnt=vals[k]||0,pass="";if(i>0){var a=act[i-1].k,bn=benchOf(a,k),pc=(vals[a]||0)>0?Math.round(cnt/(vals[a]||0)*100):0;pass='<span style="color:'+cssv(gc(pc,bn))+'">'+pc+'%</span> <span style="color:#888">/ 目安'+bn+'%</span>';}rows+='<tr><td>'+STAGE_TITLE[k]+'</td><td style="text-align:right">'+cnt+'名</td><td style="text-align:right">'+pass+'</td></tr>';}return '<table class="rtbl"><tr><th>選考段階</th><th style="text-align:right">人数</th><th style="text-align:right">前段からの通過率</th></tr>'+rows+'</table>';}
+function reportIssues(){var L=['最重要ボトルネック：<b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）'];if(R.failR>=40)L.push('ターゲット外の応募が '+R.failR+'%（母集団の質に課題）');if(R.dropR>=25)L.push('応募後の離脱が '+R.dropR+'%（WEBの競合比較で面接前に格下げの可能性）');if(R.accRate>0){var dr=Math.round((1-R.accRate)*100);L.push('内定辞退率 約'+dr+'%（市場平均 約35%）');}return '<ul class="rul">'+L.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul>';}
+function reportMoves(){var weak=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);if(!weak.length)return '<p>各段階とも良好です。定着・リファラルでファン化を強化しましょう。</p>';return weak.map(function(o){var p=pbStep(o.i)[0];return '<div class="rmove"><div class="rmt" style="color:'+STC[o.i]+'">'+steps[o.i].name+'（スコア '+o.sc+'）</div><div><b>課題：</b>'+esc(p.issue)+'</div><div style="margin-top:2px"><b>解決策：</b>'+esc(p.solve)+'</div><div class="rcta">→ 具体策：弊社「'+esc(p.svc)+'」を選考フローに組み込むことを推奨します。</div></div>';}).join("");}
+function renderReport(){var rep=document.getElementById("report");if(!rep)return;
+ var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP"),sup=document.getElementById("supervisor").value.trim(),supC=document.getElementById("supervisorC").value.trim();
+ if(!R.filled){rep.innerHTML='<div class="rpage"><div class="rhead"><div class="rttl">中途採用 成功確率アセスメント</div></div><p>選考ファネルの人数をすべて入力してから出力してください。</p></div>';return;}
+ var g=grade(R.ov),gl=lv(R.ov);
+ var h='<div class="rpage"><div class="rhead"><div class="rttl">中途採用 成功確率アセスメント</div><div class="rsub">'+esc(comp)+(job?' ／ '+esc(job):'')+'</div><div class="rmeta">'+(per?'対象期間 '+esc(per)+'　':'')+'診断日 '+today+'　株式会社カケハシスカイ'+(sup?'　監修：'+esc(sup):'')+'</div></div>';
+ h+='<div class="rgrade"><div class="rgletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div><div class="rgnum">'+R.ov+' <span>/ 100</span></div><div class="rglabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div></div>';
+ h+='<div class="rsec">採用力スコア（FANサイクル 5段階）</div>'+radarScoreSVG(R.sc);
+ h+='<div class="rnote">最も伸びしろのある段階は <b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）。'+esc(pbStep(R.low)[0].solve)+'</div>';
+ if(supC)h+='<div class="rnote" style="margin-top:8px"><b>監修コメント'+(sup?'（'+esc(sup)+'）':'')+'：</b>'+esc(supC)+'</div>';
+ h+='</div>';
+ h+='<div class="rpage"><div class="rsec">選考ファネルと通過率</div>'+reportFunnel();
+ if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100);h+='<div class="rnote" style="margin-top:10px"><b>採用目標に対する実現度：</b>目標 '+R.target+'名／現状 '+acc+'名 ＝ <b>達成率 '+rate+'%</b>'+((R.impHi>0)?'（打ち手で 約'+(acc+R.impLo)+'〜'+(acc+R.impHi)+'名へ）':'')+'</div>';}
+ h+='<div class="rsec">あぶり出された課題</div>'+reportIssues();
+ h+='<div class="rsec">優先すべき打ち手（カケハシのご提案）</div>'+reportMoves();
+ h+='<div class="rfoot">本診断は無料です。詳細のご提案はお気軽にご相談ください。　株式会社カケハシスカイ　TEL:0120-342-834<br>※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムによる参考値です。</div></div>';
+ rep.innerHTML=h;}
+function printReport(){renderReport();window.print();}
+
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls("urls");seedUrls("rivalUrls");renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});setMode("prep");recompute();
+seedUrls("urls");seedUrls("rivalUrls");renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo","supervisor","supervisorC"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});renderLite();setMode("prep");recompute();
 </script>
 </body>
 </html>
