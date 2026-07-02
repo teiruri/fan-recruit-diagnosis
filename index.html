@@ -735,7 +735,7 @@ function urlRow(hostId,type,val){
 }
 function addUrl(hostId){urlRow(hostId,"その他","");}
 function getUrls(hostId){return [].slice.call(document.querySelectorAll("#"+hostId+" .urlrow")).map(function(r){return {type:r.querySelector("select").value,url:r.querySelector("input").value.trim()};}).filter(function(u){return u.url;});}
-function seedUrls(hostId,list){var w=document.getElementById(hostId);w.innerHTML="";if(list&&list.length){list.forEach(function(u){urlRow(hostId,u.type,u.url);});}else{["採用サイト","求人原稿","口コミサイト"].forEach(function(t){urlRow(hostId,t,"");});}}
+function seedUrls(hostId,list){var w=document.getElementById(hostId);w.innerHTML="";if(list&&list.length){list.forEach(function(u){urlRow(hostId,u.type,u.url);});}else{["採用サイト","求人原稿","口コミサイト"].forEach(function(t){urlRow(hostId,t,"");});}if(hostId==="rivalUrls"){var have={};[].forEach.call(w.querySelectorAll(".urlrow select"),function(s){have[s.value]=1;});["採用サイト","求人原稿","口コミサイト"].forEach(function(t){if(!have[t])urlRow(hostId,t,"");});}}
 function copyPrompt(){
  var c=document.getElementById("company").value||"（企業名）";
  var us=getUrls("urls"),u=us.length?us.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（URL未入力）";
