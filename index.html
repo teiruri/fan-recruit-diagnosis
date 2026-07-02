@@ -153,6 +153,10 @@ body.mode-meet .rpthead .rptsub{font-size:15px}
 body.mode-meet .rvsumt{font-size:14px}
 body.mode-meet .rvsumc b{font-size:18px}
 @media(max-width:680px){.rvsum{grid-template-columns:1fr}}
+.chiphelp{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#cdd8df;color:#fff;font-size:10px;font-weight:bold;margin-left:6px;cursor:help}
+.chip.on .chiphelp{background:#7bbf96}
+.mvcta{margin-top:7px;background:#eaf7fd;border:1px solid #bfe6f8;border-left:4px solid var(--cyan);border-radius:8px;padding:8px 11px;font-size:12.5px;color:var(--ink)}
+body.mode-meet .mvcta{font-size:14px}
 .cmptbl{display:flex;flex-direction:column;gap:9px}
 .cmprow{border-bottom:1px dashed #eef2f5;padding-bottom:8px}
 .cmpax{font-weight:bold;font-size:13px;margin-bottom:4px;color:var(--ink)}
@@ -174,7 +178,8 @@ body.mode-meet .goalbar{height:26px}
 body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .wrap{max-width:none}
 .sec{break-after:avoid;page-break-after:avoid}
-.card,.svcard,.hl,.grid2,#leaks,#scorecard,.scorecard,#chart,.rvchart,.rvquote,.barrow,.rvcat,.bmrow,.rvsum,.rvsumc,.rpthead,.svfind,.cs-script,#consultBridge{break-inside:avoid;page-break-inside:avoid}
+.chiphelp{display:none}
+.card,.svcard,.hl,.grid2,#leaks,#scorecard,.scorecard,#chart,.rvchart,.rvquote,.barrow,.rvcat,.bmrow,.rvsum,.rvsumc,.rpthead,.svfind,.cs-script,.mvcta,#consultBridge{break-inside:avoid;page-break-inside:avoid}
 }
 </style>
 </head>
@@ -289,6 +294,7 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
   <div class="sec prep-only">問診＆数値入力（FANサイクル順）</div>
   <div class="sec meet-only">③ 問診＆数値｜FANサイクル順に、質問→人数→取り組みを一体で確認</div>
+  <div class="no-print" style="margin-bottom:9px"><button class="btn" type="button" onclick="autoFillFunnel()">▶ 応募数×目安で想定人数を自動入力</button> <span class="muted">目安ベースの想定値です。実数がわかる箇所は上書きしてください</span></div>
   <div id="survey"></div>
 
   <div class="sec prep-only">応募〜面接の“2つの取りこぼし”（原因で切り分け）</div>
@@ -326,7 +332,7 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 </div>
 
 <script>
-var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45},"エンジニア":{ad:50,dm:88,mm:65,mo:50,oa:55},"施工管理":{ad:45,dm:85,mm:60,mo:45,oa:50},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55},"事務":{ad:25,dm:80,mm:60,mo:40,oa:55}};
+var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55}};
 var bm=Object.assign({},presets["標準"]);
 var defs=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casual",n:"カジュアル面談",opt:1},{k:"i1",n:"一次面接",fix:1},{k:"i2",n:"二次面接",opt:1},{k:"final",n:"最終面接",opt:1},{k:"offer",n:"内定",fix:1},{k:"accept",n:"承諾",fix:1}];
 var cfg={doc:true,casual:false,i1:true,i2:false,final:true};
@@ -344,11 +350,11 @@ var hpoints=[
  {pts:["入社後フォロー・オンボーディング","早期離職・定着の実感","リファラル（紹介）の有無"]}
 ];
 var steps=[
- {name:"知る",tog:["媒体プラン上位","スカウト配信","エージェント視点での条件良","SNS","採用サイトからの応募流入"],on:[1,0,0,0,1]},
- {name:"惹かれる",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用ピッチ資料","採用動画","ターゲット視点での条件良"],on:[1,1,0,0,0]},
- {name:"信頼する",tog:["応募への即時対応","面接調整の即連絡","面接官の惹きつけ良","惹きつけシナリオの標準化","候補者フォロー良"],on:[1,1,0,0,0]},
- {name:"決断する",tog:["クロージングシナリオ（勝ちパターン）","オファーレター","クロージングブック","家族対策","オファー面談"],on:[0,0,0,0,0]},
- {name:"活躍する",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[1,0,0,0,0]}
+ {name:"知る",tog:["媒体プラン上位","スカウト配信","エージェント視点での条件良","SNS","採用サイトからの応募流入"],on:[1,0,0,0,1],crit:["主要媒体で上位掲載・特集枠を活用できている状態","スカウト／ダイレクトを定期運用し返信が来ている状態","紹介会社が推薦しやすい条件・関係を築けている状態","採用目的のSNS発信を継続できている状態","自社採用サイト経由の応募が一定数ある状態"]},
+ {name:"惹かれる",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用ピッチ資料","採用動画","ターゲット視点での条件良"],on:[1,1,0,0,0],crit:["社員ストーリー／数字／仕事内容が具体的に載っている状態","ターゲットに刺さる訴求・キャッチが設計されている状態","会社の魅力・方針をまとめた採用ピッチ資料がある状態","仕事や社員が伝わる採用動画を用意できている状態","狙う層にとって条件（給与／働き方）が競合と戦える状態"]},
+ {name:"信頼する",tog:["応募への即時対応","面接調整の即連絡","面接官の惹きつけ良","惹きつけシナリオの標準化","候補者フォロー良"],on:[1,1,0,0,0],crit:["応募から初回連絡まで概ね1営業日以内で対応できている状態","日程調整の連絡が滞りなく即対応できている状態","面接官が魅力づけ・動機形成を意識できている状態","誰が面接しても魅力を伝えられる型（シナリオ）がある状態","選考中の不安を解消するフォローができている状態"]},
+ {name:"決断する",tog:["クロージングシナリオ（勝ちパターン）","オファーレター","クロージングブック","家族対策","オファー面談"],on:[0,0,0,0,0],crit:["承諾に向けた勝ちパターンが言語化・共有されている状態","条件だけでなく期待・想いを伝えるレターがある状態","入社の不安を払拭する資料（実績／環境）がある状態","本人だけでなく家族の不安に配慮した打ち手がある状態","内定後に条件・期待をすり合わせる面談を実施している状態"]},
+ {name:"活躍する",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[1,0,0,0,0],crit:["入社初期の立ち上がりを支援するプログラムがある状態","入社後に定期的な面談でフォローできている状態","早期離職が少なく定着している状態","社員紹介（リファラル）が生まれる仕組み・実績がある状態","中途入社者の活躍事例・ロールモデルがある状態"]}
 ];
 /* 各ファネルkeyがどのFANサイクルステップに属するか */
 var KEYSTEP={apply:0,doc:1,casual:2,i1:2,i2:2,final:2,offer:3,accept:3};
@@ -442,7 +448,7 @@ function renderSurvey(){
    if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（ターゲット外）</b><span class="svndesc">応募のうちターゲット外で見送った数（残り＝応募後の離脱）</span></div><input class="num" id="v_docfail" type="number" min="0" value="'+(vals.docfail||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';}
    h+='</div>';
   }
-  h+='<div class="svsub">実施中の取り組み（タップで選択）</div><div class="row">'+s.tog.map(function(t,ti){return '<span class="chip'+(s.on[ti]?" on":"")+'" data-step="'+i+'" data-ti="'+ti+'">'+t+'</span>';}).join("")+'</div>';
+  h+='<div class="svsub">実施中の取り組み（タップで選択）<span style="font-weight:normal;color:var(--muted)">　※各項目にカーソルを合わせると選択の目安が出ます</span></div><div class="row">'+s.tog.map(function(t,ti){var cr=(s.crit&&s.crit[ti])||"";return '<span class="chip'+(s.on[ti]?" on":"")+'" data-step="'+i+'" data-ti="'+ti+'" title="選択の目安：'+esc(cr)+'">'+t+'<span class="chiphelp" data-crit="'+esc(cr)+'">?</span></span>';}).join("")+'</div>';
   return h+'</div>';
  }).join("");
  host.querySelectorAll(".hpnote").forEach(function(inp){inp.oninput=function(){hpnotes[inp.dataset.hp]=inp.value;};});
@@ -450,6 +456,7 @@ function renderSurvey(){
  var df=document.getElementById("v_docfail");if(df)df.oninput=function(){vals.docfail=+this.value||0;recompute();};
  var tg=document.getElementById("v_target");if(tg)tg.oninput=function(){vals.target=+this.value||0;recompute();};
  host.querySelectorAll(".chip[data-step]").forEach(function(c){c.onclick=function(){c.classList.toggle("on");steps[+c.dataset.step].on[+c.dataset.ti]=c.classList.contains("on")?1:0;recompute();};});
+ host.querySelectorAll(".chiphelp").forEach(function(el){el.onclick=function(e){e.stopPropagation();alert("選択の目安：\n"+(el.dataset.crit||""));};});
 }
 
 /* ===== 口コミ・評判分析セクション ===== */
@@ -465,6 +472,7 @@ function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92
   var lp=pt(i,R+17),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");
   s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12.5"><tspan fill="#3a4a53">'+esc(cats[i].name)+'</tspan><tspan fill="'+col+'" font-weight="bold"> '+esc(cats[i].score)+'</tspan></text>';}
  return s+'</svg>';}
+function autoFillFunnel(){var act=activeDefs(),ap=vals.apply||0;if(!ap){alert("先に「応募数」を入力してください。");return;}for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,bn=benchOf(a,b);vals[b]=Math.round((vals[a]||0)*bn/100);}renderSurvey();recompute();}
 function renderReviews(){var host=document.getElementById("reviews");if(!host)return;var d=getAI(),rv=d&&d.reviews;
  var cats=rv&&rv.categories?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
  var qs=rv&&rv.quotes?rv.quotes.filter(function(q){return q&&q.text;}):[];
@@ -540,7 +548,7 @@ function renderScorecard(sc,ov,low,reviews){
  var strong=0;for(var i=1;i<5;i++){if(sc[i]>sc[strong])strong=i;}
  var comp=document.getElementById("company").value.trim(),job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP"),pb=pbStep(low)[0];
  var sub=[];if(comp)sub.push(esc(comp));if(job)sub.push(esc(job));
- var head='<div class="rpthead"><div><b>📋 採用力サーベイ 結果</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div>';
+ var head='<div class="rpthead"><div><b>📋 中途採用 成功確率アセスメント</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div><div class="muted" style="margin:-4px 0 11px;font-size:11.5px">※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムで、選考各段階の到達度を算出しています。</div>';
  var card='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+ov+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div><div class="bars">'+bars+'</div></div>';
  var summ='<div class="rvsum"><div class="rvsumc" style="border-top-color:'+cssv(lv(sc[strong])[1])+'"><div class="rvsumt">💪 最も強い</div><b style="color:'+STC[strong]+'">'+names[strong]+'</b><div class="rvsumd">スコア '+sc[strong]+'</div></div><div class="rvsumc" style="border-top-color:var(--bad)"><div class="rvsumt">🎯 最優先の課題</div><b style="color:'+STC[low]+'">'+steps[low].name+'</b><div class="rvsumd">スコア '+sc[low]+'</div></div><div class="rvsumc" style="border-top-color:var(--cyan)"><div class="rvsumt">🚀 次の一手</div><b style="color:var(--cyanD)">'+esc(pb.svc)+'</b><div class="rvsumd">'+esc(pb.solve)+'</div></div></div>';
  host.innerHTML=head+card+summ;
@@ -624,13 +632,16 @@ function recompute(){
  }
 
  var weak=[0,1,2,3,4].map(function(i){return{i:i,sc:sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);
- var mv=document.getElementById("moves");mv.innerHTML="";
- if(!weak.length)mv.innerHTML='<span class="muted">各ステップ良好。定着・リファラルで“ファン化”を強化。</span>';
+ var mv=document.getElementById("moves");
+ var wpc=(worst>=0&&(vals[act[worst].k]||0)>0)?Math.round((vals[act[worst+1].k]||0)/(vals[act[worst].k]||0)*100):0;
+ var reason=(worst>=0)?'<div class="hl" style="margin:0 0 12px"><b style="color:var(--cyanD)">なぜこの打ち手が最優先か（ロジック）</b><div style="margin-top:3px">「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が <b>'+wpc+'%</b>（目安 '+wb+'%・<b style="color:var(--bad)">−'+Math.max(0,wb-wpc)+'pt</b>）と、選考全体で最も差が大きいためです。ここを目安まで戻すことが、承諾数への影響が最大になります。</div></div>':'';
+ mv.innerHTML=reason+(weak.length?'':'<span class="muted">各ステップ良好。定着・リファラルで“ファン化”を強化。</span>');
  function mvLabel(no,txt,col){return '<span style="display:inline-block;min-width:96px;vertical-align:top;font-size:11px;font-weight:bold;color:'+col+'">'+no+' '+txt+'</span>';}
  weak.forEach(function(o,idx){var es=pbStep(o.i).slice(0,2);var r=document.createElement("div");r.style.marginBottom="16px";r.innerHTML='<div class="row" style="margin-bottom:6px"><span class="badge" style="background:'+STP[o.i]+';color:'+STC[o.i]+';box-shadow:none">'+(idx+1)+'</span><b style="color:'+STC[o.i]+'">'+steps[o.i].name+'</b><span class="muted">のステップを強化</span></div>'+es.map(function(p){return '<div style="margin:0 0 9px 30px;background:#fff;border:1px solid var(--line);border-left:3px solid '+STC[o.i]+';border-radius:8px;padding:10px 13px">'+
    '<div style="margin-bottom:5px">'+mvLabel("①","課題の特定","var(--bad)")+'<span>'+p.issue+'</span></div>'+
    '<div style="margin-bottom:5px">'+mvLabel("②","解決策（施策）","var(--warn)")+'<b>'+p.solve+'</b></div>'+
    '<div>'+mvLabel("③","活用サービス","var(--cyanD)")+'<span style="background:var(--cyanL);color:var(--cyanD);font-weight:bold;border-radius:6px;padding:2px 9px">'+p.svc+'</span></div>'+
+   '<div class="mvcta">→ <b>具体策</b>：弊社「'+p.svc+'」を選考フローに組み込み、<b>'+esc(p.solve)+'</b>ことを推奨します。</div>'+
  '</div>';}).join("");mv.appendChild(r);});
 
  var ins=document.getElementById("insight");
@@ -638,6 +649,7 @@ function recompute(){
  if(docOn&&failR>=40)lines.push('<b style="color:var(--warn)">ターゲット外の応募が'+failR+'%</b>＝母数の質に課題（①②）');
  if(dropR>=25)lines.push('<b style="color:var(--bad)">応募後離脱が'+dropR+'%</b>＝WEB上の競合比較で“面接前”に格下げの可能性（②③）');
  if(accRate>0&&accRate<bm.oa/100)lines.push('内定→承諾'+Math.round(accRate*100)+'%が目安'+bm.oa+'%未満＝意思決定の後押しに余地（④）');
+ if(accRate>0){var declR=Math.round((1-accRate)*100);lines.push('<span class="muted">参考：内定辞退率の市場平均は約35%。御社は約<b style="color:'+(declR>35?"var(--bad)":"var(--ok)")+'">'+declR+'%</b>'+(declR>35?"（平均より高め＝クロージングに伸びしろ）":"（平均並み〜良好）")+'</span>');}
  ins.innerHTML='<b style="color:var(--cyanD)">気づき</b><ul style="margin:6px 0 0;padding-left:20px">'+lines.map(function(l){return '<li>'+l+'</li>';}).join("")+'</ul>';
 
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
