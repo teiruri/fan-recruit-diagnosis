@@ -518,6 +518,7 @@ function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92
  [1,2,3,4,5].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="'+(lv===5?"#fbfdfe":"none")+'" stroke="#e3ebf0"/>';});
  for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
  var d=[];for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0));var q=pt(i,R*sc/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}
+ var st=[];for(var i=0;i<n;i++){var q=pt(i,R*3/max);st.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+st.join(' ')+'" fill="none" stroke="#7a8791" stroke-width="1.4" stroke-dasharray="5 4"/>';var l3=pt(0,R*3/max);s+='<text x="'+l3[0].toFixed(1)+'" y="'+(l3[1]-5).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="#5a6771">標準 3.0</text>';
  s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.18)" stroke="#00B0F0" stroke-width="2.5"/>';
  for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0)),col=ratingColor(cats[i].score);var q=pt(i,R*sc/max);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';
   var lp=pt(i,R+17),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");
@@ -552,6 +553,7 @@ function radarCompareSVG(selfC,rivalC){var n=selfC.length;if(n<3)return"";var cx
  var s='<svg viewBox="0 0 460 304" width="100%" style="display:block;max-width:480px;margin:2px auto">';
  [1,2,3,4,5].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="#e3ebf0"/>';});
  for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
+ var st=[];for(var i=0;i<n;i++){var q=pt(i,R*3/max);st.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+st.join(' ')+'" fill="none" stroke="#7a8791" stroke-width="1.4" stroke-dasharray="5 4"/>';var l3=pt(0,R*3/max);s+='<text x="'+l3[0].toFixed(1)+'" y="'+(l3[1]-5).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="#5a6771">標準 3.0</text>';
  s+=poly(rivalC,"#F39800","rgba(243,152,0,.14)",2);
  s+=poly(selfC,"#00B0F0","rgba(0,176,240,.20)",2.5);
  for(var i=0;i<n;i++){var lp=pt(i,R+15),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12" fill="#3a4a53">'+esc(selfC[i].name)+'</text>';}
