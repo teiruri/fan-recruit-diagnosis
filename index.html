@@ -248,7 +248,8 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
       <span class="row" style="gap:6px"><span class="muted">会社名</span><input type="text" id="company" placeholder="株式会社〇〇" style="width:200px"></span>
       <span class="row" style="gap:6px"><span class="muted">職種名（大前提）</span><input type="text" id="jobtitle" placeholder="例：法人営業／施工管理" style="width:210px"></span>
     </div>
-    <div class="row" style="gap:8px;margin-top:10px"><span class="muted">対象期間</span><input type="date" id="periodFrom"><span class="muted">〜</span><input type="date" id="periodTo"><span class="muted">この期間の採用を診断します</span></div>
+    <div class="row" style="gap:8px;margin-top:10px"><span class="muted">対象期間</span><input type="date" id="periodFrom"><span class="muted">〜</span><input type="date" id="periodTo"><span class="row" style="gap:6px;margin-left:14px"><span class="muted">🎯 採用目標人数</span><input type="number" min="0" id="v_target" placeholder="名" style="width:80px;text-align:center"><span class="muted">名</span></span></div>
+    <div class="muted" style="margin-top:6px">この期間・職種の採用を診断します。採用目標人数は結果の「実現度（達成率）」の基準になります。</div>
   </div>
 
   <div class="sec prep-only">ご利用の流れ（アポ取得 → 結果アウトプット）</div>
@@ -334,13 +335,6 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     <div class="muted" style="margin-top:8px">※「固定目安」は標準値（調整不可）。連続する面接（面接間）が複数ある場合は先頭のみ入力（他は共通）。</div>
   </div>
 
-  <div class="sec prep-only">権威づけ（監修・任意）</div>
-  <div class="card prep-only">
-    <div class="row" style="gap:6px;margin-bottom:8px"><span class="muted">監修者名</span><input type="text" id="supervisor" placeholder="例：採用コンサルタント ○○" style="width:240px"></div>
-    <div class="row" style="gap:6px"><span class="muted">監修コメント</span><input type="text" id="supervisorC" placeholder="例：まずは③信頼（対応スピード）から着手を推奨します" style="flex:1;min-width:240px"></div>
-    <div class="muted" style="margin-top:7px">入力すると、結果画面と報告書に「○○ 監修」として表示されます。</div>
-  </div>
-
   <div class="sec prep-only">問診＆数値入力（FANサイクル順）</div>
   <div class="sec meet-only">③ 問診＆数値｜FANサイクル順に、質問→人数→取り組みを一体で確認</div>
   <div class="no-print" style="margin-bottom:9px"><button class="btn" type="button" onclick="autoFillFunnel()">▶ 応募数×目安で想定人数を自動入力</button> <span class="muted">目安ベースの想定値です。実数がわかる箇所は上書きしてください</span></div>
@@ -397,6 +391,7 @@ var LITEQ=[
  {q:"③ 内定を出した後の辞退は多いですか？",opts:[["少ない（〜10%）",0],["普通（10〜30%）",1],["多い（30%〜）",2]]}
 ];
 var names=["①知る","②惹かれる","③信頼する","④決断する","⑤活躍する"];
+var AUTHOR="株式会社カケハシスカイ 採用成功研究所";
 var STC=["#2F66A8","#1F8C84","#6A5BAE","#B9822A","#BD5E80"];
 var STP=["#DDEAF8","#D2F0EC","#E8E3F6","#FBEDD3","#FAE1EA"];
 /* FANサイクル各ステップ：定性ヒアリング（メモ）＋取り組みチップ */
@@ -502,7 +497,6 @@ function renderSurvey(){
     var desc=dd.k==="apply"?"エントリー総数（母集団）":((prevK?STAGE_NOUN[prevK]:"応募")+" → "+STAGE_ACT[dd.k]+"人数");
     return '<div class="svnum"><div class="svnlbl"><b>'+STAGE_TITLE[dd.k]+'</b><span class="svndesc">'+desc+'</span></div><input class="num" id="v_'+dd.k+'" type="number" min="0" value="'+(vals[dd.k]||"")+'"><span class="unit">名</span><div class="gate2" id="gate_'+dd.k+'"></div></div>';
    }).join("");
-   if(i===0){h+='<div class="svnum" style="border-top:1px dashed #e3edf2;padding-top:9px;margin-top:2px"><div class="svnlbl"><b style="color:var(--cyanD)">🎯 採用目標人数（今期）</b><span class="svndesc">今回の採用で目指す人数。結果の「実現度（達成率）」の基準になります</span></div><input class="num" id="v_target" type="number" min="0" value="'+(vals.target||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';}
    if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（ターゲット外）</b><span class="svndesc">応募のうちターゲット外で見送った数（残り＝応募後の離脱）</span></div><input class="num" id="v_docfail" type="number" min="0" value="'+(vals.docfail||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';}
    h+='</div>';
   }
@@ -512,7 +506,6 @@ function renderSurvey(){
  host.querySelectorAll(".hpnote").forEach(function(inp){inp.oninput=function(){hpnotes[inp.dataset.hp]=inp.value;};});
  act.forEach(function(dd){var el=document.getElementById("v_"+dd.k);if(el)el.oninput=function(){vals[dd.k]=+this.value||0;recompute();};});
  var df=document.getElementById("v_docfail");if(df)df.oninput=function(){vals.docfail=+this.value||0;recompute();};
- var tg=document.getElementById("v_target");if(tg)tg.oninput=function(){vals.target=+this.value||0;recompute();};
  host.querySelectorAll(".chip[data-step]").forEach(function(c){c.onclick=function(){c.classList.toggle("on");steps[+c.dataset.step].on[+c.dataset.ti]=c.classList.contains("on")?1:0;recompute();};});
  host.querySelectorAll(".chiphelp").forEach(function(el){el.onclick=function(e){e.stopPropagation();alert("選択の目安：\n"+(el.dataset.crit||""));};});
 }
@@ -609,8 +602,7 @@ function renderScorecard(sc,ov,low,reviews){
  var head='<div class="rpthead"><div><b>📋 中途採用 成功確率アセスメント</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div><div class="muted" style="margin:-4px 0 11px;font-size:11.5px">※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムで、選考各段階の到達度を算出しています。</div>';
  var card='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+ov+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div><div class="bars">'+bars+'</div></div>';
  var summ='<div class="rvsum"><div class="rvsumc" style="border-top-color:'+cssv(lv(sc[strong])[1])+'"><div class="rvsumt">💪 最も強い</div><b style="color:'+STC[strong]+'">'+names[strong]+'</b><div class="rvsumd">スコア '+sc[strong]+'</div></div><div class="rvsumc" style="border-top-color:var(--bad)"><div class="rvsumt">🎯 最優先の課題</div><b style="color:'+STC[low]+'">'+steps[low].name+'</b><div class="rvsumd">スコア '+sc[low]+'</div></div><div class="rvsumc" style="border-top-color:var(--cyan)"><div class="rvsumt">🚀 次の一手</div><b style="color:var(--cyanD)">'+esc(pb.svc)+'</b><div class="rvsumd">'+esc(pb.solve)+'</div></div></div>';
- var sup=document.getElementById("supervisor").value.trim(),supC=document.getElementById("supervisorC").value.trim();
- var credit=sup?('<div class="credit">🎓 <b>'+esc(sup)+' 監修</b>'+(supC?'　'+esc(supC):'')+'</div>'):'';
+ var credit='<div class="credit">🎓 <b>'+AUTHOR+'</b> 監修</div>';
  host.innerHTML=head+card+summ+credit;
 }
 
@@ -746,14 +738,14 @@ function copyPrompt(){
 
 /* ===== 保存・読込（localStorage / JSON） ===== */
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,supervisor:document.getElementById("supervisor").value,supervisorC:document.getElementById("supervisorC").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
 function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var blob=new Blob([json],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},2000);}catch(e){alert("JSONの書き出しに失敗しました：\n"+(e&&e.message?e.message:e));}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var st=JSON.parse(rd.result);applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e){alert("JSONの読み込みに失敗しました（ファイル形式をご確認ください）");}ev.target.value="";};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("supervisor").value=st.supervisor||"";document.getElementById("supervisorC").value=st.supervisorC||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
@@ -783,14 +775,13 @@ function reportFunnel(){var act=activeDefs(),rows="";for(var i=0;i<act.length;i+
 function reportIssues(){var L=['最重要ボトルネック：<b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）'];if(R.failR>=40)L.push('ターゲット外の応募が '+R.failR+'%（母集団の質に課題）');if(R.dropR>=25)L.push('応募後の離脱が '+R.dropR+'%（WEBの競合比較で面接前に格下げの可能性）');if(R.accRate>0){var dr=Math.round((1-R.accRate)*100);L.push('内定辞退率 約'+dr+'%（市場平均 約35%）');}return '<ul class="rul">'+L.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul>';}
 function reportMoves(){var weak=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);if(!weak.length)return '<p>各段階とも良好です。定着・リファラルでファン化を強化しましょう。</p>';return weak.map(function(o){var p=pbStep(o.i)[0];return '<div class="rmove"><div class="rmt" style="color:'+STC[o.i]+'">'+steps[o.i].name+'（スコア '+o.sc+'）</div><div><b>課題：</b>'+esc(p.issue)+'</div><div style="margin-top:2px"><b>解決策：</b>'+esc(p.solve)+'</div><div class="rcta">→ 具体策：弊社「'+esc(p.svc)+'」を選考フローに組み込むことを推奨します。</div></div>';}).join("");}
 function renderReport(){var rep=document.getElementById("report");if(!rep)return;
- var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP"),sup=document.getElementById("supervisor").value.trim(),supC=document.getElementById("supervisorC").value.trim();
+ var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){rep.innerHTML='<div class="rpage"><div class="rhead"><div class="rttl">中途採用 成功確率アセスメント</div></div><p>選考ファネルの人数をすべて入力してから出力してください。</p></div>';return;}
  var g=grade(R.ov),gl=lv(R.ov);
- var h='<div class="rpage"><div class="rhead"><div class="rttl">中途採用 成功確率アセスメント</div><div class="rsub">'+esc(comp)+(job?' ／ '+esc(job):'')+'</div><div class="rmeta">'+(per?'対象期間 '+esc(per)+'　':'')+'診断日 '+today+'　株式会社カケハシスカイ'+(sup?'　監修：'+esc(sup):'')+'</div></div>';
+ var h='<div class="rpage"><div class="rhead"><div class="rttl">中途採用 成功確率アセスメント</div><div class="rsub">'+esc(comp)+(job?' ／ '+esc(job):'')+'</div><div class="rmeta">'+(per?'対象期間 '+esc(per)+'　':'')+'診断日 '+today+'　監修：'+AUTHOR+'</div></div>';
  h+='<div class="rgrade"><div class="rgletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div><div class="rgnum">'+R.ov+' <span>/ 100</span></div><div class="rglabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div></div></div>';
  h+='<div class="rsec">採用力スコア（FANサイクル 5段階）</div>'+radarScoreSVG(R.sc);
  h+='<div class="rnote">最も伸びしろのある段階は <b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）。'+esc(pbStep(R.low)[0].solve)+'</div>';
- if(supC)h+='<div class="rnote" style="margin-top:8px"><b>監修コメント'+(sup?'（'+esc(sup)+'）':'')+'：</b>'+esc(supC)+'</div>';
  h+='</div>';
  h+='<div class="rpage"><div class="rsec">選考ファネルと通過率</div>'+reportFunnel();
  if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100);h+='<div class="rnote" style="margin-top:10px"><b>採用目標に対する実現度：</b>目標 '+R.target+'名／現状 '+acc+'名 ＝ <b>達成率 '+rate+'%</b>'+((R.impHi>0)?'（打ち手で 約'+(acc+R.impLo)+'〜'+(acc+R.impHi)+'名へ）':'')+'</div>';}
@@ -801,7 +792,9 @@ function renderReport(){var rep=document.getElementById("report");if(!rep)return
 function printReport(){renderReport();window.print();}
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls("urls");seedUrls("rivalUrls");renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo","supervisor","supervisorC"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});renderLite();setMode("prep");recompute();
+seedUrls("urls");seedUrls("rivalUrls");renderBench();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
+document.getElementById("v_target").addEventListener("input",function(){vals.target=+this.value||0;recompute();});
+renderLite();setMode("prep");recompute();
 </script>
 </body>
 </html>
