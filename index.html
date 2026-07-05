@@ -114,6 +114,10 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3plancard>div>b:first-child{display:inline-block;min-width:42px;color:#7a8791;font-size:10.5px}
 .a3psvc{background:#eaf7fd;border-radius:6px;padding:5px 8px;color:var(--cyanD);font-weight:bold;margin-top:6px!important}
 .a3vol{margin-top:6px;background:#fff7e6;border:1px solid #f0c98a;border-radius:6px;padding:6px 9px;font-size:11px;line-height:1.5}
+.a3memos{display:flex;flex-direction:column;gap:6px}
+.a3memo{font-size:11px;line-height:1.5;border-left:3px solid #cdd8df;padding:2px 0 2px 8px}
+.a3memo b{display:block;font-size:11px}
+.a3pmemo{background:#f4f8fb;border-radius:6px;padding:4px 8px;font-size:11px;line-height:1.5;margin:4px 0}
 @media(max-width:900px){.a3plancards{grid-template-columns:1fr}.a3fan{flex-wrap:wrap}}
 .a3foot{margin-top:10px;border-top:1px solid #dbe3e8;padding-top:6px;font-size:10.5px;color:#586872;text-align:center}
 /* === JSONオーバーレイ === */
@@ -923,6 +927,8 @@ function renderReport(){var rep=document.getElementById("report");if(!rep)return
  h+='<div class="rsec">優先すべき打ち手（カケハシのご提案）</div>'+reportMoves();
  h+='<div class="rfoot">本診断は無料です。詳細のご提案はお気軽にご相談ください。　株式会社カケハシスカイ　TEL:0120-342-834<br>※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムによる参考値です。</div></div>';
  rep.innerHTML=h;}
+function stepMemos(i){var arr=[],n=(hpoints[i]?hpoints[i].pts.length:0);for(var j=0;j<n;j++){var v=(hpnotes[i+"_"+j]||"").trim();if(v)arr.push(v);}return arr;}
+function stepMemoStr(i){return stepMemos(i).join("　／　");}
 function a3Order(){return [0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3).map(function(o){return o.i;});}
 function diagOrder(){var base=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).sort(function(a,b){return a.sc-b.sc;}).map(function(o){return o.i;});
  var forced=[];if(R.noSite)forced.push(1);if(R.volDriven){forced.push(0);forced.push(1);}
@@ -932,12 +938,15 @@ function a3FanStrip(order){var pri={};order.forEach(function(i,idx){pri[i]=idx+1
 function a3PlanCards(order){return '<div class="a3plancards">'+order.map(function(i,idx){var p=pbStep(i)[0],hi=R.sc[i]>=65,issue=p.issue,cause=(hi?'目安は満たすが、さらに上積みの余地':'目安（市場基準）を下回る歩留まり'),solve=p.solve,svc=p.svc;
  if(R.noSite&&i===1){issue='自社採用サイトが無い（不十分）ため、候補者がWEBで魅力・信頼を確認できず、紹介前・面接前の動機形成が弱い';cause='立地・企業規模の不利をWEB訴求で補えていない／競合サイトに見劣り';solve='採用サイトを制作し、事業・仕事・社員・数字で魅力を可視化する';svc='TRACE（採用サイト制作）';}
  else if(R.volDriven&&i===0){issue='目標に対し応募・紹介数（母集団）が不足（必要 約'+R.reqApply+'名／現状 '+R.apply+'名）';cause='認知不足・立地/規模の不利で、狙う層へリーチし切れていない';solve='媒体最適化・スカウト/エージェント拡大＋採用サイトで惹きつけ、母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'</div><div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div><div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ var mem=stepMemoStr(i);
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'</div>'+(mem?'<div class="a3pmemo">🗒 現場の声：'+esc(mem)+'</div>':'')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div><div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 中途採用 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
  var g=grade(R.ov),gl=lv(R.ov),sc=R.sc,low=R.low,d=getAI(),pbl=pbStep(low)[0];
  var moneyExec=(R.hv>0&&R.impHi>0)?('（約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'）'):'';
+ var memoCard='',anyMemo=[0,1,2,3,4].some(function(i){return stepMemos(i).length;});
+ if(anyMemo)memoCard='<div class="a3card"><h4>🗒 ヒアリング所見（現場の声・重要情報源）</h4><div class="a3memos">'+[0,1,2,3,4].map(function(i){var m=stepMemoStr(i);return m?'<div class="a3memo"><b style="color:'+STC[i]+'">'+names[i]+'</b> '+esc(m)+'</div>':'';}).join("")+'</div></div>';
  var h='<div class="a3sheet"><div class="a3head"><div><div class="a3ttl">📋 中途採用 成功確率アセスメント</div><div class="a3sub">'+esc(comp)+(job?'　／　'+esc(job):'')+(per?'　｜対象期間 '+esc(per):'')+'　｜診断日 '+today+'　｜監修：'+AUTHOR+'</div></div><div class="a3grade"><span class="a3gl" style="color:'+cssv(gl[1])+'">'+g[0]+'</span><span class="a3gn">'+R.ov+'<small> / 100</small></span><span class="a3gt" style="color:'+cssv(gl[1])+'">'+g[1]+'</span></div></div><div class="a3grid">';
  // COL1
  h+='<div class="a3col"><div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4>'+
@@ -945,7 +954,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
   '<div class="a3exrow"><b>最大の機会損失</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt':'')+'</span></div>'+
   '<div class="a3exrow"><b>改善インパクト</b><span>承諾 +'+R.impLo+'〜+'+R.impHi+'名 '+moneyExec+'</span></div>'+
   '<div class="a3exrow"><b>次にやるべき1手</b><span>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</span></div></div>'+
-  '<div class="a3card"><h4>採用力スコア（FANサイクル 5段階）</h4>'+radarScoreSVG(sc)+'</div></div>';
+  '<div class="a3card"><h4>採用力スコア（FANサイクル 5段階）</h4>'+radarScoreSVG(sc)+'</div>'+memoCard+'</div>';
  // COL2
  h+='<div class="a3col"><div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>'+
   '<div class="a3card"><h4>選考ファネルと通過率</h4>'+reportFunnel()+'</div>'+
