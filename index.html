@@ -65,6 +65,42 @@ body.mode-meet:not(.show-result) #resultWrap{display:none}
 body.mode-meet .exectop b{font-size:19px}
 body.mode-meet .execgrade{font-size:23px}
 body.mode-meet .exec li{font-size:16px}
+/* === A3横 最終アウトプット === */
+#a3report{display:none}
+body.mode-meet.show-result #resultWrap>*:not(#a3report){display:none}
+body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
+.a3sheet{width:100%;max-width:1500px;margin:0 auto;background:#fff;color:#16242c;padding:12px 16px;box-sizing:border-box}
+.a3head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:3px solid var(--cyan);padding-bottom:8px;margin-bottom:10px}
+.a3ttl{font-size:20px;font-weight:bold;color:var(--dark)}
+.a3sub{font-size:12px;color:#586872;margin-top:2px}
+.a3grade{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.a3grade .a3gl{font-size:42px;font-weight:bold;line-height:1}
+.a3grade .a3gn{font-size:26px;font-weight:bold}.a3gn small{font-size:13px;color:#888}
+.a3grade .a3gt{font-size:14px;font-weight:bold}
+.a3grid{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:12px;align-items:start}
+.a3col{min-width:0}
+.a3card{border:1px solid #dbe3e8;border-radius:8px;padding:9px 11px;margin-bottom:10px;background:#fff;break-inside:avoid}
+.a3card h4{margin:0 0 6px;font-size:12.5px;color:var(--dark);border-left:3px solid var(--cyan);padding-left:7px}
+.a3card svg{max-height:215px}
+.a3exec{background:linear-gradient(120deg,#0A2A3A,#15607D);color:#eaf6fb;border:none}
+.a3exec h4{color:#bfe9f8;border-color:#bfe9f8}
+.a3exrow{display:flex;gap:8px;font-size:12px;margin:5px 0;line-height:1.5}
+.a3exrow b{flex:0 0 96px;color:#bfe9f8}
+.a3cols{display:flex;justify-content:space-between;text-align:center;font-size:10px;margin-top:4px}
+.a3leaks{display:flex;flex-direction:column;gap:6px}
+.a3leak{border:1px solid #eee;border-left-width:4px;border-radius:6px;padding:5px 8px;font-size:11px}
+.a3leak .a3ln{font-size:16px;font-weight:bold;margin:2px 0}.a3leak small{color:#888;font-weight:normal}
+.a3leg{display:flex;justify-content:center;gap:16px;font-size:11px;margin-top:2px}
+.a3leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.a3move{border:1px solid #eef2f5;border-left:3px solid var(--cyan);border-radius:6px;padding:6px 9px;margin-bottom:6px;font-size:11.5px;line-height:1.55}
+.a3mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.a3prio{background:var(--bad);color:#fff;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:bold}
+.a3cta{background:#eaf7fd;border-color:#bfe6f8}
+.a3foot{margin-top:10px;border-top:1px solid #dbe3e8;padding-top:6px;font-size:10.5px;color:#586872;text-align:center}
+/* === JSONオーバーレイ === */
+#jsonOverlay{display:none;position:fixed;inset:0;background:rgba(10,42,58,.55);z-index:50;align-items:center;justify-content:center;padding:20px}
+.jsonbox{background:#fff;border-radius:12px;padding:16px 18px;max-width:760px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.jsonbox textarea{width:100%;height:52vh;font-family:monospace;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:8px;box-sizing:border-box}
 body.mode-meet .gatebtn{font-size:20px;padding:18px}
 .stepper{display:flex;flex-wrap:wrap;align-items:center;gap:5px;background:#fff;border:1px solid #dbe3e8;border-radius:10px;padding:9px 13px;margin-bottom:10px;box-shadow:0 2px 7px rgba(10,42,58,.06)}
 .stp{font-size:12px;font-weight:bold;color:var(--pc,#586872);border:1.5px solid var(--pc,#cdd8df);border-radius:999px;padding:3px 11px;background:#fff;white-space:nowrap}
@@ -219,14 +255,16 @@ body.mode-meet .credit{font-size:15px}
 .rcta{background:#eaf7fd;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:12.5px}
 .rfoot{margin-top:14px;font-size:11px;color:#586872;text-align:center;border-top:1px solid #dbe3e8;padding-top:8px}
 @media print{
-.no-print{display:none!important}
-.topbar{display:none!important}
-.wrap{display:none!important}
-#report{display:block}
+@page{size:A3 landscape;margin:8mm}
 body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.rpage{page-break-after:always}
-.rpage:last-child{page-break-after:auto}
-.rsec,.rmove,.rtbl,.rgrade,.rnote{break-inside:avoid;page-break-inside:avoid}
+body>*{display:none!important}
+.wrap{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
+.wrap>*:not(#resultWrap){display:none!important}
+#resultWrap{display:block!important}
+#resultWrap>*:not(#a3report){display:none!important}
+#a3report{display:block!important}
+.a3sheet{max-width:none;width:100%;padding:0}
+.a3card,.a3move,.a3leak{break-inside:avoid}
 }
 </style>
 </head>
@@ -365,6 +403,7 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   <div id="resultGate" class="meet-only no-print"></div>
 
   <div id="resultWrap">
+  <div id="a3report"></div>
   <div id="execSummary" style="margin-bottom:12px"></div>
   <div class="sec prep-only">応募〜面接の“2つの取りこぼし”（原因で切り分け）</div>
   <div class="sec meet-only">④ 所見｜応募〜面接の“2つの取りこぼし”</div>
@@ -402,6 +441,7 @@ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 </div>
 
 <div id="report"></div>
+<div id="jsonOverlay" class="no-print"></div>
 
 <script>
 var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55}};
@@ -757,7 +797,8 @@ function recompute(){
  var es=document.getElementById("execSummary");
  if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">採用力：<span style="color:'+egColor(ov)+'">'+eg[0]+'</span> '+ov+'点（'+eg[1]+'）</div><ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li><li><b>改善インパクト：</b>この一手で 承諾 +'+impLo+'〜+'+impHi+'名'+moneyS+'</li><li><b>次にやるべき1手：</b>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,impLo:impLo,impHi:impHi,target:vals.target||0};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop};
+ if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
  var cb=document.getElementById("consultBridge");
@@ -793,13 +834,16 @@ function copyPrompt(){
 function updateResultGate(){var g=document.getElementById("resultGate");if(!g)return;var act=activeDefs();var miss=act.filter(function(d){return !((vals[d.k]||0)>0);});
  if(!miss.length){g.innerHTML='<div class="gatebtn" onclick="revealResult()">▶ 採用力診断の結果を表示する</div>';}
  else{g.innerHTML='<div class="gatewait">診断結果は、選考数値をすべて入力すると表示できます<br>（残り '+miss.length+' 項目：'+miss.map(function(d){return STAGE_NOUN[d.k];}).join("・")+'）</div>';}}
-function revealResult(){showResult=true;document.body.classList.add("show-result");updateResultGate();var r=document.getElementById("resultWrap");if(r&&r.scrollIntoView)r.scrollIntoView({behavior:"smooth",block:"start"});}
+function revealResult(){showResult=true;document.body.classList.add("show-result");renderA3();updateResultGate();var r=document.getElementById("a3report");if(r&&r.scrollIntoView)r.scrollIntoView({behavior:"smooth",block:"start"});}
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.body.classList.remove("show-result");showResult=false;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
 function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
-function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var blob=new Blob([json],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},2000);}catch(e){alert("JSONの書き出しに失敗しました：\n"+(e&&e.message?e.message:e));}}
+function exportJSON(){try{var s=state();s.savedAt=new Date().toLocaleString("ja-JP");var fn=((document.getElementById("company").value.trim()||"採用診断").replace(/[\\/:*?"<>|]/g,"_"))+"_診断.json";var json=JSON.stringify(s,null,2);var o=document.getElementById("jsonOverlay");o.setAttribute("data-fn",fn);o.innerHTML='<div class="jsonbox"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><b>診断データ（JSON）</b><button class="btn" onclick="closeJsonOverlay()">✕ 閉じる</button></div><textarea id="jsonText" readonly></textarea><div class="row" style="margin-top:10px;gap:8px"><button class="btn pri" onclick="downloadJson()">⬇ ファイルで保存</button><button class="btn" onclick="copyJson()">📋 コピー</button><span id="jsonMsg" class="muted"></span></div><div class="muted" style="margin-top:6px">このデータは「⬆ JSON」で読み込むと診断を復元できます（ダブルクリックでは開けません）。</div></div>';document.getElementById("jsonText").value=json;o.style.display="flex";}catch(e){alert("JSONの生成に失敗しました：\n"+(e&&e.message?e.message:e));}}
+function closeJsonOverlay(){var o=document.getElementById("jsonOverlay");if(o)o.style.display="none";}
+function copyJson(){var t=document.getElementById("jsonText");if(!t)return;t.focus();t.select();var ok=false;try{ok=document.execCommand("copy");}catch(e){}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value);ok=true;}var m=document.getElementById("jsonMsg");if(m)m.textContent=ok?"コピーしました":"コピーできませんでした（手動で全選択→コピー）";}
+function downloadJson(){var t=document.getElementById("jsonText"),o=document.getElementById("jsonOverlay");if(!t)return;var fn=o.getAttribute("data-fn")||"採用診断_診断.json",m=document.getElementById("jsonMsg");try{var blob=new Blob([t.value],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);if(m)m.textContent="保存しました";return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},1500);if(m)m.textContent="ダウンロードしました";}catch(e){if(m)m.textContent="保存に失敗："+(e&&e.message?e.message:e);}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var txt=String(rd.result||"").replace(/^﻿/,"").trim();var st;try{st=JSON.parse(txt);}catch(e){alert("JSONの読み込みに失敗しました。\nこのファイルはJSON形式ではないか、壊れています。\n\n詳細："+e.message+"\n先頭："+txt.slice(0,50));ev.target.value="";return;}try{applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e2){alert("データの適用中にエラーが発生しました。\n詳細："+e2.message);}ev.target.value="";};rd.onerror=function(){alert("ファイルの読み込みに失敗しました（アクセス権をご確認ください）。");};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
 function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
@@ -846,7 +890,44 @@ function renderReport(){var rep=document.getElementById("report");if(!rep)return
  h+='<div class="rsec">優先すべき打ち手（カケハシのご提案）</div>'+reportMoves();
  h+='<div class="rfoot">本診断は無料です。詳細のご提案はお気軽にご相談ください。　株式会社カケハシスカイ　TEL:0120-342-834<br>※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムによる参考値です。</div></div>';
  rep.innerHTML=h;}
-function printReport(){renderReport();window.print();}
+function reportMovesA3(){var weak=[0,1,2,3].map(function(i){return{i:i,sc:R.sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);
+ if(!weak.length)return '<div style="font-size:11.5px">各段階とも良好です。定着・リファラルでファン化を強化しましょう。</div>';
+ return weak.map(function(o,idx){var p=pbStep(o.i)[0];return '<div class="a3move"><div class="a3mh"><b style="color:'+STC[o.i]+'">'+steps[o.i].name+'（'+o.sc+'点）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'</div><div><b>課題：</b>'+esc(p.issue)+'</div><div><b>原因：</b>目安（市場基準）を下回る歩留まり</div><div><b>解決策：</b>'+esc(p.solve)+' → <span style="color:var(--cyanD);font-weight:bold">'+esc(p.svc)+'</span></div></div>';}).join("");}
+function renderA3(){var host=document.getElementById("a3report");if(!host)return;
+ var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
+ if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 中途採用 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
+ var g=grade(R.ov),gl=lv(R.ov),sc=R.sc,low=R.low,d=getAI(),pbl=pbStep(low)[0];
+ var moneyExec=(R.hv>0&&R.impHi>0)?('（約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'）'):'';
+ var h='<div class="a3sheet"><div class="a3head"><div><div class="a3ttl">📋 中途採用 成功確率アセスメント</div><div class="a3sub">'+esc(comp)+(job?'　／　'+esc(job):'')+(per?'　｜対象期間 '+esc(per):'')+'　｜診断日 '+today+'　｜監修：'+AUTHOR+'</div></div><div class="a3grade"><span class="a3gl" style="color:'+cssv(gl[1])+'">'+g[0]+'</span><span class="a3gn">'+R.ov+'<small> / 100</small></span><span class="a3gt" style="color:'+cssv(gl[1])+'">'+g[1]+'</span></div></div><div class="a3grid">';
+ // COL1
+ h+='<div class="a3col"><div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4>'+
+  '<div class="a3exrow"><b>採用力</b><span style="font-weight:bold;color:'+egColor(R.ov)+'">'+g[0]+' '+R.ov+'点（'+g[1]+'）</span></div>'+
+  '<div class="a3exrow"><b>最大の機会損失</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt':'')+'</span></div>'+
+  '<div class="a3exrow"><b>改善インパクト</b><span>承諾 +'+R.impLo+'〜+'+R.impHi+'名 '+moneyExec+'</span></div>'+
+  '<div class="a3exrow"><b>次にやるべき1手</b><span>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</span></div></div>'+
+  '<div class="a3card"><h4>採用力スコア（FANサイクル 5段階）</h4>'+radarScoreSVG(sc)+'</div></div>';
+ // COL2
+ h+='<div class="a3col"><div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>'+
+  '<div class="a3card"><h4>選考ファネルと通過率</h4>'+reportFunnel()+'</div>'+
+  '<div class="a3card"><h4>取りこぼし（3区分）</h4><div class="a3leaks">'+
+   (R.docOn?('<div class="a3leak" style="border-left-color:#d98a0c"><b style="color:var(--warn)">① 未対応（放置）</b><div class="a3ln">'+R.untouched+'名 <small>／応募の'+R.untR+'%</small></div><small>対応漏れ → ③信頼を築く</small></div>'+
+    '<div class="a3leak" style="border-left-color:#d98a0c"><b style="color:var(--warn)">② 書類不合格（ターゲット外）</b><div class="a3ln">'+R.fail+'名 <small>／応募の'+R.failR+'%</small></div><small>訴求ずれ → ①認知・②惹きつけ</small></div>'):'')+
+   '<div class="a3leak" style="border-left-color:#d8453c"><b style="color:var(--bad)">'+(R.docOn?'③ ':'')+'選考途中の辞退・連絡不通</b><div class="a3ln">'+R.drop+'名 <small>／応募の'+R.dropR+'%</small></div><small>WEB競合比較で格下げ → ②惹きつけ・③信頼</small></div>'+
+   '</div></div></div>';
+ // COL3
+ h+='<div class="a3col">';
+ var rv=d&&d.reviews,selfCats=(rv&&rv.categories)?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
+ var comp2=d&&d.competitor,rivalCats=(comp2&&comp2.categories)?comp2.categories.filter(function(c){return c&&c.name;}):[];
+ var hasRival=getUrls("rivalUrls").length>0&&rivalCats.length>=3&&selfCats.length>=3;
+ if(selfCats.length>=3){h+='<div class="a3card"><h4>口コミ・評判'+(hasRival?'（自社 vs '+esc(comp2.name||"競合")+'）':'')+(rv.rating?'　総合 '+esc(rv.rating):'')+'</h4>'+(hasRival?radarCompareSVG(selfCats,rivalCats):radarSVG(selfCats))+(hasRival?'<div class="a3leg"><span><i style="background:#00B0F0"></i>自社</span><span><i style="background:#F39800"></i>'+esc(comp2.name||"競合")+'</span></div>':'')+'</div>';}
+ else if(rv&&(rv.summary||rv.rating)){h+='<div class="a3card"><h4>口コミ・評判'+(rv.rating?'　総合 '+esc(rv.rating)+'/5':'')+'</h4><div style="font-size:11px">'+esc(rv.summary||"")+'</div></div>';}
+ if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100),rcol=rate>=100?"#1f9e6a":rate>=70?"#0089c4":rate>=40?"#d98a0c":"#d8453c";
+  h+='<div class="a3card"><h4>採用目標に対する実現度</h4><div style="font-size:12px">目標 <b>'+R.target+'</b>名 ／ 現状 <b>'+acc+'</b>名</div><div class="goalbar" style="margin-top:5px"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div><div style="margin-top:4px;font-weight:bold;color:'+rcol+'">達成率 '+rate+'%'+(R.impHi>0?'（打ち手で '+Math.round((acc+R.impLo)/R.target*100)+'〜'+Math.round((acc+R.impHi)/R.target*100)+'%へ）':'')+'</div>'+(R.hv>0&&R.impHi>0?'<div style="font-size:11px;color:#0089c4;margin-top:3px">改善インパクト 約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'</div>':'')+'</div>';}
+ h+='<div class="a3card"><h4>採用成功に向けた 課題 → 原因 → 解決策</h4>'+reportMovesA3()+'</div>'+
+  '<div class="a3card a3cta"><b>🤝 次回ご提案</b><div style="font-size:11.5px;margin-top:3px">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div></div></div>';
+ h+='</div><div class="a3foot">本診断は無料の参考値です（独自アルゴリズムによる算出）。株式会社カケハシスカイ TEL:0120-342-834　監修：'+AUTHOR+'</div></div>';
+ host.innerHTML=h;}
+function printReport(){renderA3();window.print();}
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
 seedUrls("urls");seedUrls("rivalUrls");renderBench();renderPrepNumbers();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
