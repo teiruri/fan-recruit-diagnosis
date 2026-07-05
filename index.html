@@ -117,6 +117,14 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3cmploss{display:flex;flex-direction:column;gap:5px}
 .a3cl{border-left:3px solid var(--bad);background:#fdf1ee;border-radius:6px;padding:5px 9px;font-size:11.5px;line-height:1.5}
 .a3kpi{background:#f4fbff}
+.a3setrate{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid #00B0F0;border-radius:9px;padding:8px 13px;margin:2px 0 9px}
+.a3setl{font-size:12.5px;font-weight:800;color:#243b4a}
+.a3setmeta{font-size:10.5px;color:#5a6b75;margin-top:2px}
+.a3setbig{font-size:40px;font-weight:800;line-height:1;margin-left:auto}.a3setbig small{font-size:17px;font-weight:700}
+.execset{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #00B0F0;border-radius:8px;padding:5px 12px;margin:7px 0 3px}
+.execsetl{font-size:12px;font-weight:800;color:#243b4a}
+.execsetv{font-size:30px;font-weight:800;line-height:1}.execsetv small{font-size:14px;font-weight:700}
+.execsetm{font-size:11px;color:#5a6b75;margin-left:auto;text-align:right}
 .a3kpi2{display:flex;gap:10px;margin:2px 0 7px}
 .a3kpiblk{flex:1;background:#fff;border-radius:7px;padding:7px 6px 8px 10px}
 .a3kpitag{display:inline-block;font-size:10px;font-weight:700;color:#fff;border-radius:4px;padding:1px 7px;margin-bottom:3px}
@@ -870,14 +878,16 @@ function recompute(){
  var egv=(total!=null)?total:ov,eg=grade(egv),moneyS=(hv>0&&impHi>0)?('　＝ 約'+yen(impLo*hv)+'〜'+yen(impHi*hv)+'の採用価値'):'';
  var qxqLine=(quant!=null)?('<div class="execgrade" style="font-size:12px;color:#5a6b75;margin-top:-4px">＝ 選考の質（歩留まり）'+ov+'点（'+grade(ov)[0]+'） × 目標達成（量）'+quant+'%（'+grade(quant)[0]+'）</div>'):'';
  var impLine=(targetUp||volDriven)?('母集団を必要水準（応募 約'+reqApply+'名）へ増やせば 目標 '+(vals.target||0)+'名 の達成が視野に'):('この一手で 承諾 +'+impLo+'〜+'+impHi+'名'+moneyS);
+ var setRate=(apply>0?Math.round(fmC/apply*100):0),setBench=(docOn?Math.round(bm.ad*bm.dm/100):(bm.am||50)),setCol=egColor(setRate>=setBench?80:35);
+ var setBanner='<div class="execset" style="border-color:'+setCol+'"><div class="execsetl">応募 → 面接 設定率</div><div class="execsetv" style="color:'+setCol+'">'+setRate+'<small>%</small></div><div class="execsetm">応募 '+apply+'名 → 面接 '+fmC+'名　／　目安 '+setBench+'%</div></div>';
  var ctx='';
  if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>目標に必要な応募 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">ターゲット設定と求人の魅力訴求が弱い可能性</span></li>';
  if(noSite)ctx+='<li><b>採用サイト：</b><span style="color:#ffcf6b">無し・不十分</span> → 採用サイト制作（TRACE）を優先施策に</li>';
  if(compInferior)ctx+='<li><b>競合比較：</b><span style="color:#ffcf6b">'+cmpArr.map(function(x){return esc(x.axis);}).join('・')+'</span> が競合に劣る → ②惹きつけ（採用サイト・求人・条件の打ち出し）の刷新</li>';
  var es=document.getElementById("execSummary");
- if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
+ if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+setBanner+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(apply>0?Math.round(docC/apply*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(apply>0?Math.round(fmC/apply*100):0)),attendBench:(docOn?bm.dm:(bm.am||50))};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(apply>0?Math.round(docC/apply*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(apply>0?Math.round(fmC/apply*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -1013,7 +1023,9 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var atGood=R.attendRate>=R.attendBench,atCol=cssv(gc(R.attendRate,R.attendBench)),dpCol=cssv(gc(R.docPassRate,R.docPassBench));
  var atNote=atGood?'会社が会いたい候補者が辞退せず面接に参加＝志望度・優先度が保てています。この強みを維持しましょう。':'書類通過（会社が会いたい）候補者が面接前に辞退＝WEB上での他社比較で自社の優先度が下がっている可能性。採用サイト・求人・口コミ等のWEB情報で志望度を引き上げる余地があります（②惹きつける）。';
  if(!atGood&&R.compInferior){var atLs=(d&&d.compare?d.compare:[]).filter(function(x){return x&&x.axis&&(parseFloat(x.rival)||0)>(parseFloat(x.self)||0);}).map(function(x){return x.axis;});if(atLs.length)atNote+=' 特に競合に劣る「'+atLs.join('・')+'」が比較検討で不利に働いています。';}
- var atiCard='<div class="a3card a3kpi"><h4>面接到達の内訳（会社判断 × 候補者判断を分離）</h4><div class="a3kpi2">';
+ var setCol2=cssv(gc(R.setRate,R.setBench));
+ var setHead='<div class="a3setrate" style="border-color:'+setCol2+'"><div><div class="a3setl">応募からの面接設定率</div><div class="a3setmeta">応募 '+R.apply+'名 → 面接 '+R.fmC+'名 ／ 目安 '+R.setBench+'%</div></div><div class="a3setbig" style="color:'+setCol2+'">'+R.setRate+'<small>%</small></div></div>';
+ var atiCard='<div class="a3card a3kpi"><h4>応募からの面接設定率と内訳（会社判断 × 候補者判断）</h4>'+setHead+'<div class="a3kpi2">';
  if(R.docOn){atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+dpCol+'"><span class="a3kpitag" style="background:#7a8791">会社判断</span><div class="a3kpil">書類選考 通過率</div><div class="a3kpibig" style="color:'+dpCol+'">'+R.docPassRate+'<small>%</small></div><div class="muted">目安 '+R.docPassBench+'% ／ 不合格 '+R.fail+'名（ターゲット外の見送り）</div></div>';}
  atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+atCol+'"><span class="a3kpitag" style="background:#0089c4">候補者判断</span><div class="a3kpil">'+(R.docOn?'書類通過→面接参加率':'応募→面接参加率')+'（志望度）</div><div class="a3kpibig" style="color:'+atCol+'">'+R.attendRate+'<small>%</small></div><div class="muted">目安 '+R.attendBench+'% ／ 辞退 '+R.drop+'名（候補者都合）</div></div>';
  atiCard+='</div><div class="a3kpinote"><b>候補者判断（志望度）：</b>'+esc(atNote)+'</div>'+(R.docOn?'<div class="a3kpinote2"><b>会社判断（絞り込み）：</b>書類不合格はターゲット外の見送り。多い場合はターゲット設定・訴求のずれ（①認知・②惹きつけ）で応募の質を高める余地。志望度とは切り分けて評価します。</div>':'')+'</div>';
