@@ -116,6 +116,11 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3vol{margin-top:6px;background:#fff7e6;border:1px solid #f0c98a;border-radius:6px;padding:6px 9px;font-size:11px;line-height:1.5}
 .a3cmploss{display:flex;flex-direction:column;gap:5px}
 .a3cl{border-left:3px solid var(--bad);background:#fdf1ee;border-radius:6px;padding:5px 9px;font-size:11.5px;line-height:1.5}
+.a3kpi{background:#f4fbff}
+.a3kpirow{display:flex;align-items:center;gap:14px;margin:2px 0 6px}
+.a3kpibig{font-size:38px;font-weight:800;line-height:1}.a3kpibig small{font-size:17px;font-weight:700}
+.a3kpimeta{font-size:12px;line-height:1.7}
+.a3kpinote{font-size:11px;line-height:1.55;color:#42525c;border-top:1px dashed #cdd6dc;padding-top:6px}
 .qxq{margin-top:9px;padding-top:8px;border-top:1px dashed #cdd6dc;font-size:11px;line-height:1.6;color:#5a6b75;text-align:center}
 .qxq b{color:#243b4a}.qxqx{margin:0 6px;color:#98a6ae}
 .a3memos{display:flex;flex-direction:column;gap:6px}
@@ -864,7 +869,7 @@ function recompute(){
  var es=document.getElementById("execSummary");
  if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,atiRate:(apply>0?Math.round(fmC/apply*100):0),atiBench:(docOn?Math.round(bm.ad*bm.dm/100):(bm.am||50))};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -997,7 +1002,11 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
   '<div class="a3exrow"><b>次にやるべき1手</b><span>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</span></div></div>'+
   '<div class="a3card"><h4>選考歩留まり（質）スコア｜FANサイクル 5段階</h4>'+radarScoreSVG(sc)+'</div>'+memoCard+'</div>';
  // COL2
- h+='<div class="a3col"><div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>'+
+ var atiGood=R.atiRate>=R.atiBench,atiCol=cssv(gc(R.atiRate,R.atiBench));
+ var atiNote=atiGood?'応募者はWEB上での他社比較を経ても志望度を保ち、面接まで参加できています。この強みを維持しましょう。':'応募後、WEB上での他社比較で自社の優先度が下がり、面接前の辞退が発生している可能性。採用サイト・求人・口コミ等のWEB情報で志望度を引き上げる余地があります（②惹きつける）。';
+ if(!atiGood&&R.compInferior){var atiLs=(d&&d.compare?d.compare:[]).filter(function(x){return x&&x.axis&&(parseFloat(x.rival)||0)>(parseFloat(x.self)||0);}).map(function(x){return x.axis;});if(atiLs.length)atiNote+=' 特に競合に劣る「'+atiLs.join('・')+'」が比較検討で不利に働いています。';}
+ var atiCard='<div class="a3card a3kpi" style="border-left:5px solid '+atiCol+'"><h4>応募→面接参加率（候補者の志望度・優先度の指標）</h4><div class="a3kpirow"><div class="a3kpibig" style="color:'+atiCol+'">'+R.atiRate+'<small>%</small></div><div class="a3kpimeta"><div>目安 <b>'+R.atiBench+'%</b> ／ 判定 <b style="color:'+atiCol+'">'+(atiGood?'良好':'要改善')+'</b></div><div class="muted">応募 '+R.apply+'名 → 面接参加 '+R.fmC+'名</div></div></div><div class="a3kpinote">'+esc(atiNote)+'</div></div>';
+ h+='<div class="a3col">'+atiCard+'<div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>'+
   '<div class="a3card"><h4>選考ファネルと通過率</h4>'+reportFunnel()+'</div>'+
   '<div class="a3card"><h4>取りこぼし（3区分）</h4><div class="a3leaks">'+
    (R.docOn?('<div class="a3leak" style="border-left-color:#d98a0c"><b style="color:var(--warn)">① 未対応（放置）</b><div class="a3ln">'+R.untouched+'名 <small>／応募の'+R.untR+'%</small></div><small>対応漏れ → ③信頼を築く</small></div>'+
