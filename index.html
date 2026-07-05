@@ -790,7 +790,7 @@ function renderScorecard(sc,ov,low,reviews,total,quant){
  var strong=0;for(var i=1;i<4;i++){if(sc[i]>sc[strong])strong=i;}
  var comp=document.getElementById("company").value.trim(),job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP"),pb=pbStep(low)[0];
  var sub=[];if(comp)sub.push(esc(comp));if(job)sub.push(esc(job));
- var head='<div class="rpthead"><div><b>📋 中途採用 成功確率アセスメント</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div><div class="muted" style="margin:-4px 0 11px;font-size:11.5px">※本診断は、カケハシスカイの中途採用支援データおよび主要転職市場の動向をもとにした独自アルゴリズムで、選考各段階の到達度を算出しています。</div>';
+ var head='<div class="rpthead"><div><b>📋 中途採用 成功確率アセスメント</b>'+(sub.length?'　<span class="rptsub">'+sub.join(" ／ ")+'</span>':'')+'</div><div class="rptsub">'+(per?"対象期間 "+esc(per)+"　":"")+'診断日 '+today+'</div></div><div class="muted" style="margin:-4px 0 11px;font-size:11.5px">※選考各段階の到達度を、市場ベンチマーク（当社の中途採用支援実績＋主要転職市場データに基づく段階別水準）×貴社の実績歩留まりで算出。総合採用力＝選考の質（歩留まり）×目標達成（量）で評価しています。</div>';
  var brk=hasQ?('<div class="qxq"><span>選考の質（歩留まり）<b>'+ov+'点</b>（'+grade(ov)[0]+'）</span><span class="qxqx">×</span><span>目標達成（量）<b>'+quant+'%</b>（'+grade(quant)[0]+'）</span></div>'):'';
  var card='<div class="scorecard"><div class="grade"><div class="muted" style="font-weight:bold">総合スコア（質×量）</div><div class="gletter" style="color:'+cssv(gl[1])+'">'+g[0]+'</div><div class="gnum">'+gv+' / 100</div><div class="glabel" style="color:'+cssv(gl[1])+'">'+gl[0]+' '+g[1]+'</div>'+brk+'</div><div class="bars"><div class="muted" style="font-weight:bold;margin-bottom:5px">選考歩留まり（質）｜FANサイクル5段階</div>'+bars+'</div></div>';
  var summ='<div class="rvsum"><div class="rvsumc" style="border-top-color:'+cssv(lv(sc[strong])[1])+'"><div class="rvsumt">💪 最も強い</div><b style="color:'+STC[strong]+'">'+names[strong]+'</b><div class="rvsumd">スコア '+sc[strong]+'</div></div><div class="rvsumc" style="border-top-color:var(--bad)"><div class="rvsumt">🎯 最優先の課題</div><b style="color:'+STC[low]+'">'+steps[low].name+'</b><div class="rvsumd">スコア '+sc[low]+'</div></div><div class="rvsumc" style="border-top-color:var(--cyan)"><div class="rvsumt">🚀 次の一手</div><b style="color:var(--cyanD)">'+esc(pb.svc)+'</b><div class="rvsumd">'+esc(pb.solve)+'</div></div></div>';
@@ -892,6 +892,7 @@ function recompute(){
  }
 
  var noSite=!!(vals.nosite),noPitch=!!(vals.nopitch),noClosing=!!(vals.noclosing);
+ var gapN=(target>0)?Math.max(0,target-(vals.accept||0)):0,gapLoss=(gapN>0&&hv>0)?gapN*hv:0;
  var reqApply=(target>0&&(vals.accept||0)>0)?Math.round(target*apply/(vals.accept||1)):0;
  var applyGap=reqApply>0?Math.max(0,reqApply-apply):0;
  var procWeak=[1,2,3].filter(function(i){return sc[i]<55;}).length;
@@ -939,10 +940,11 @@ function recompute(){
  if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>目標に必要な応募 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">ターゲット設定と求人の魅力訴求が弱い可能性</span></li>';
  if(noSite)ctx+='<li><b>採用サイト：</b><span style="color:#ffcf6b">無し・不十分</span> → 採用サイト制作（TRACE）を優先施策に</li>';
  if(compInferior)ctx+='<li><b>競合比較：</b><span style="color:#ffcf6b">'+cmpArr.map(function(x){return esc(x.axis);}).join('・')+'</span> が競合に劣る → ②惹きつけ（採用サイト・求人・条件の打ち出し）の刷新</li>';
+ var execLoss=(gapLoss>0)?('<li><b>経営インパクト：</b>目標未達 '+gapN+'名 ＝ 年間 約<b style="color:#ffcf6b">'+yen(gapLoss)+'</b> の機会損失（1人採用の価値 '+yen(hv)+' × 未達 '+gapN+'名）</li>'):'';
  var es=document.getElementById("execSummary");
- if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+setBanner+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
+ if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+setBanner+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+execLoss+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(apply>0?Math.round(docC/apply*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(apply>0?Math.round(fmC/apply*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(apply>0?Math.round(docC/apply*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(apply>0?Math.round(fmC/apply*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench,gapN:gapN,gapLoss:gapLoss,acc:(vals.accept||0)};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -1071,6 +1073,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  h+='<div class="a3col"><div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4>'+
   '<div class="a3exrow"><b>総合採用力</b><span style="font-weight:bold;color:'+egColor(gv)+'">'+g[0]+' '+gv+'点（'+g[1]+'）</span></div>'+a3qxq+
   '<div class="a3exrow"><b>最大の機会損失</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt':'')+'</span></div>'+
+  ((R.gapLoss>0)?'<div class="a3exrow"><b>経営インパクト</b><span>目標未達 '+R.gapN+'名 ＝ 年間 約<b style="color:#ffd98a">'+yen(R.gapLoss)+'</b> の機会損失</span></div>':'')+
   '<div class="a3exrow"><b>改善インパクト</b><span>'+a3imp+'</span></div>'+
   '<div class="a3exrow"><b>次にやるべき1手</b><span>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</span></div></div>'+
   '<div class="a3card"><h4>選考歩留まり（質）スコア｜FANサイクル 5段階</h4>'+radarScoreSVG(sc)+'</div>'+memoCard+'</div>';
@@ -1108,7 +1111,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  h+='</div>'; /* grid close */
  var order=diagOrder();
  h+='<div class="a3plan"><h4>採用成功に向けた 課題 → 原因 → 解決策（優先順・伸びしろ順）｜FANサイクルのどこを攻めるか</h4>'+a3FanStrip(order)+a3PlanCards(order)+'</div>';
- h+='<div class="a3foot">本診断は無料の参考値です（独自アルゴリズムによる算出）。株式会社カケハシスカイ TEL:0120-342-834　監修：'+AUTHOR+'</div></div>';
+ h+='<div class="a3foot"><b>診断ロジック</b>：選考各段階の到達度＝「市場ベンチマーク（当社の中途採用支援実績＋主要転職市場データに基づく段階別水準）」×「貴社の実績歩留まり」で算出。総合採用力＝選考の質（歩留まり）×目標達成（量）。口コミは全社（職種横断）の公開評価に基づく参考値です。<br>本診断は無料の参考値です。株式会社カケハシスカイ　TEL:0120-342-834　監修：'+AUTHOR+'　診断日 '+today+'</div></div>';
  host.innerHTML=h;}
 function printReport(){renderA3();window.print();}
 
