@@ -87,6 +87,8 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3card svg{max-height:215px}
 .a3exec{background:linear-gradient(120deg,#0A2A3A,#15607D);color:#eaf6fb;border:none}
 .a3exec h4{color:#bfe9f8;border-color:#bfe9f8}
+.a3exhead{background:rgba(255,255,255,.1);border-left:3px solid #bfe9f8;border-radius:6px;padding:6px 9px;margin:2px 0 7px;font-size:11.5px;line-height:1.55}
+.a3exhead b{color:#ffe1a0}
 .a3exrow{display:flex;gap:8px;font-size:12px;margin:5px 0;line-height:1.5}
 .a3exrow b{flex:0 0 96px;color:#bfe9f8}
 .a3cols{display:flex;justify-content:space-between;text-align:center;font-size:10px;margin-top:4px}
@@ -1075,7 +1077,8 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  if(anyMemo)memoCard='<div class="a3card"><h4>🗒 採用担当者ヒアリング（事実情報・最重要根拠）</h4><div class="a3memos">'+[0,1,2,3,4].map(function(i){var m=stepMemoStr(i);return m?'<div class="a3memo"><b style="color:'+STC[i]+'">'+names[i]+'</b> '+esc(m)+'</div>':'';}).join("")+'</div></div>';
  var h='<div class="a3sheet"><div class="a3head"><div><div class="a3ttl">📋 中途採用 成功確率アセスメント</div><div class="a3sub">'+esc(comp)+(job?'　／　'+esc(job):'')+(per?'　｜対象期間 '+esc(per):'')+'　｜診断日 '+today+'　｜監修：'+AUTHOR+'</div></div><div class="a3grade"><span class="a3gl" style="color:'+cssv(gl[1])+'">'+g[0]+'</span><span class="a3gn">'+gv+'<small> / 100</small></span><span class="a3gt" style="color:'+cssv(gl[1])+'">'+g[1]+(R.quant!=null?'<br><small style="font-weight:normal;color:#7a8791">質'+R.ov+'×量'+R.quant+'%</small>':'')+'</span></div></div><div class="a3grid">';
  // COL1
- h+='<div class="a3col"><div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4>'+
+ var a3head1='貴社の中途採用力は総合 <b>'+gv+'点（'+g[1]+'）</b>。'+(R.worst>=0?'最大のボトルネックは「'+R.worstFrom+'→'+R.worstTo+'」。':'')+(R.gapLoss>0?'目標未達 '+R.gapN+'名＝年間 約<b>'+yen(R.gapLoss)+'</b>の機会損失。':'')+'最優先は「'+steps[low].name+'」の強化です。';
+ h+='<div class="a3col"><div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4><div class="a3exhead">'+a3head1+'</div>'+
   '<div class="a3exrow"><b>総合採用力</b><span style="font-weight:bold;color:'+egColor(gv)+'">'+g[0]+' '+gv+'点（'+g[1]+'）</span></div>'+a3qxq+
   '<div class="a3exrow"><b>最大の機会損失</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt':'')+'</span></div>'+
   ((R.gapLoss>0)?'<div class="a3exrow"><b>経営インパクト</b><span>目標未達 '+R.gapN+'名 ＝ 年間 約<b style="color:#ffd98a">'+yen(R.gapLoss)+'</b> の機会損失</span></div>':'')+
