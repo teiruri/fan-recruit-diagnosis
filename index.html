@@ -810,6 +810,9 @@ function recompute(){
  var procWeak=[1,2,3].filter(function(i){return sc[i]<55;}).length;
  var volShort=(target>0&&(vals.accept||0)<target&&applyGap>0);
  var volDriven=volShort&&procWeak<=1;
+ var reqInterview=(target>0&&(vals.accept||0)>0&&fmC>0)?Math.round(target*fmC/(vals.accept||1)):0;
+ var interviewGap=reqInterview>0?Math.max(0,reqInterview-fmC):0;
+ var targetUp=(target>0&&(applyGap>0||interviewGap>0));
  var weak=[0,1,2,3].map(function(i){return{i:i,sc:sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);
  var mv=document.getElementById("moves");
  var wpc=(worst>=0&&(vals[act[worst].k]||0)>0)?Math.round((vals[act[worst+1].k]||0)/(vals[act[worst].k]||0)*100):0;
@@ -830,7 +833,7 @@ function recompute(){
  if(dropR>=25)lines.push('<b style="color:var(--bad)">応募後離脱が'+dropR+'%</b>＝WEB上の競合比較で“面接前”に格下げの可能性（②③）');
  if(accRate>0&&accRate<bm.oa/100)lines.push('内定→承諾'+Math.round(accRate*100)+'%が目安'+bm.oa+'%未満＝意思決定の後押しに余地（④）');
  if(accRate>0){var declR=Math.round((1-accRate)*100);lines.push('<span class="muted">参考：内定辞退率の市場平均は約35%。御社は約<b style="color:'+(declR>35?"var(--bad)":"var(--ok)")+'">'+declR+'%</b>'+(declR>35?"（平均より高め＝クロージングに伸びしろ）":"（平均並み〜良好）")+'</span>');}
- if(volShort)lines.push('<b style="color:var(--bad)">目標達成に必要な応募 約'+reqApply+'名／現状'+apply+'名（不足'+applyGap+'名）</b>'+(volDriven?'＝選考の歩留まりは良好で、<b>目標未達の主因は母集団（応募・紹介数）の量</b>。①認知・②惹きつけ強化が最優先':''));
+ if(volShort||targetUp)lines.push('<b style="color:var(--bad)">目標に対し応募/面接が不足</b>（必要応募 約'+reqApply+'名／現状'+apply+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<b>ターゲット設定と、ターゲットへの求人の魅力訴求が弱い可能性</b>。①認知される・②惹きつけるの見直しが最優先');
  if(noSite)lines.push('<b style="color:var(--warn)">自社採用サイトが無い（不十分）</b>＝WEBで魅力・信頼が伝わらず②③④に影響。採用サイト制作が有効');
  if(noPitch)lines.push('<b style="color:var(--warn)">採用ピッチ資料が無い</b>＝WEB/資料での魅力訴求が弱く②惹きつけに影響。採用ピッチ資料の整備が有効（②）');
  if(noClosing)lines.push('<b style="color:var(--warn)">クロージングツール（本人・家族）が無い</b>＝内定→承諾'+Math.round(accRate*100)+'%に影響。クロージングブックが有効（④）');
@@ -838,15 +841,15 @@ function recompute(){
 
  var topSolve=pbStep(low)[0].solve,topSvc=pbStep(low)[0].svc;
  if(noSite){topSolve='採用サイトを制作し、WEBで魅力・信頼を可視化する（立地・規模の不利も補える）';topSvc='TRACE（採用サイト制作）';}
- else if(volDriven){topSolve='母集団（応募・紹介数）を増やす：媒体・スカウト・エージェント拡大＋採用サイトでの魅力訴求';topSvc='TRACE ／ スカウト運用支援';}
+ else if(targetUp||volDriven){topSolve='ターゲット（求める人物像）を明確化し、そのターゲットに刺さる求人の魅力訴求（求人原稿・採用サイト・採用ピッチ）＋媒体/スカウト最適化で母集団を増やす';topSvc='TRACE ／ 制作顧問 ／ スカウト運用支援';}
  var eg=grade(ov),moneyS=(hv>0&&impHi>0)?('　＝ 約'+yen(impLo*hv)+'〜'+yen(impHi*hv)+'の採用価値'):'';
  var ctx='';
- if(volShort)ctx+='<li><b>母集団：</b>目標に必要な応募 約'+reqApply+'名 ／ 現状 '+apply+'名（不足 '+applyGap+'名）'+(volDriven?'。歩留まりは良好＝<b style="color:#ffcf6b">量（母集団）の不足が主因</b>':'')+'</li>';
+ if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>目標に必要な応募 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">ターゲット設定と求人の魅力訴求が弱い可能性</span></li>';
  if(noSite)ctx+='<li><b>採用サイト：</b><span style="color:#ffcf6b">無し・不十分</span> → 採用サイト制作（TRACE）を優先施策に</li>';
  var es=document.getElementById("execSummary");
  if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="execgrade">採用力：<span style="color:'+egColor(ov)+'">'+eg[0]+'</span> '+ov+'点（'+eg[1]+'）</div><ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+'<li><b>改善インパクト：</b>この一手で 承諾 +'+impLo+'〜+'+impHi+'名'+moneyS+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,volShort:volShort,volDriven:volDriven};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -946,7 +949,7 @@ function stepMemos(i){var arr=[],n=(hpoints[i]?hpoints[i].pts.length:0);for(var 
 function stepMemoStr(i){return stepMemos(i).join("　／　");}
 function a3Order(){return [0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3).map(function(o){return o.i;});}
 function diagOrder(){var base=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).sort(function(a,b){return a.sc-b.sc;}).map(function(o){return o.i;});
- var f={};if(R.noSite)f[1]=1;if(R.noPitch)f[1]=1;if(R.noClosing)f[3]=1;if(R.volDriven){f[0]=1;f[1]=1;}
+ var f={};if(R.noSite)f[1]=1;if(R.noPitch)f[1]=1;if(R.noClosing)f[3]=1;if(R.targetUp||R.volDriven){f[0]=1;f[1]=1;}
  var forced=Object.keys(f).map(Number).sort(function(a,b){return R.sc[a]-R.sc[b];});
  var order=[];forced.concat(base).forEach(function(i){if(order.indexOf(i)<0)order.push(i);});return order.slice(0,3);}
 function a3FanStrip(order){var pri={};order.forEach(function(i,idx){pri[i]=idx+1;});
@@ -954,8 +957,9 @@ function a3FanStrip(order){var pri={};order.forEach(function(i,idx){pri[i]=idx+1
 function a3PlanCards(order){var d=getAI();return '<div class="a3plancards">'+order.map(function(i,idx){var p=pbStep(i)[0],hi=R.sc[i]>=65,issue=p.issue,cause=(hi?'目安は満たすが、さらに上積みの余地':'目安（市場基準）を下回る歩留まり'),solve=p.solve,svc=p.svc;
  var st=(d&&d.steps&&d.steps[i])||{};if(st.issue)issue=st.issue;if(st.cause)cause=st.cause;if(st.solution)solve=st.solution;
  if(R.noSite&&i===1){issue='自社採用サイトが無い（不十分）ため、候補者がWEBで魅力・信頼を確認できず、紹介前・面接前の動機形成が弱い';cause='立地・企業規模の不利をWEB訴求で補えていない／競合サイトに見劣り';solve='採用サイトを制作し、事業・仕事・社員・数字で魅力を可視化する';svc='TRACE（採用サイト制作）';}
- else if(R.volDriven&&i===0){issue='目標に対し応募・紹介数（母集団）が不足（必要 約'+R.reqApply+'名／現状 '+R.apply+'名）';cause='認知不足・立地/規模の不利で、狙う層へリーチし切れていない';solve='媒体最適化・スカウト/エージェント拡大＋採用サイトで惹きつけ、母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
  else if(R.noPitch&&i===1){issue='採用ピッチ資料が無く、会社の魅力・方針が候補者に体系的に伝わらない';cause='紹介前・面接前の動機形成が弱く、②惹きつけの弱さにつながる';solve='採用ピッチ資料を制作し、事業／仕事／社員／数字で魅力を体系化する';svc='採用ピッチ資料制作（制作顧問／TRAY）';}
+ else if(R.targetUp&&i===1){issue='ターゲットに刺さる求人の魅力訴求が弱く、狙う層の応募・志望度が伸びない';cause='ターゲット（求める人物像）の設定が曖昧、または訴求がターゲットにずれている';solve='ターゲットを明確化し、そのターゲットに刺さる求人原稿・採用サイト・採用ピッチで魅力訴求を強化する';svc='TRACE ／ 制作顧問（クリエイティブ）';}
+ else if((R.targetUp||R.volDriven)&&i===0){issue='目標に対し応募・面接（母集団）が不足（必要応募 約'+R.reqApply+'名／現状 '+R.apply+'名'+(R.interviewGap>0?'・面接 約'+R.interviewGap+'名不足':'')+'）';cause='ターゲット設定が曖昧で、狙う層へリーチできていない（＋立地/規模の不利）';solve='ターゲット（求める人物像）を明確化し、狙う層へ届く媒体・スカウト・エージェントに最適化して母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
  return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'</div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div><div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
@@ -991,7 +995,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  else if(rv&&(rv.summary||rv.rating)){h+='<div class="a3card"><h4>口コミ・評判'+(rv.rating?'　総合 '+esc(rv.rating)+'/5':'')+'</h4><div style="font-size:11px">'+esc(rv.summary||"")+'</div></div>';}
  if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100),rcol=rate>=100?"#1f9e6a":rate>=70?"#0089c4":rate>=40?"#d98a0c":"#d8453c";
   h+='<div class="a3card"><h4>採用目標に対する実現度</h4><div style="font-size:12px">目標 <b>'+R.target+'</b>名 ／ 現状 <b>'+acc+'</b>名</div><div class="goalbar" style="margin-top:5px"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div><div style="margin-top:4px;font-weight:bold;color:'+rcol+'">達成率 '+rate+'%'+(R.impHi>0?'（打ち手で '+Math.round((acc+R.impLo)/R.target*100)+'〜'+Math.round((acc+R.impHi)/R.target*100)+'%へ）':'')+'</div>'+(R.hv>0&&R.impHi>0?'<div style="font-size:11px;color:#0089c4;margin-top:3px">改善インパクト 約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'</div>':'')+'</div>';}
- if(R.volShort){h+='<div class="a3card"><h4>母集団と目標（量の分析）</h4><div style="font-size:11.5px">目標達成に必要な応募 約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）</div>'+(R.volDriven?'<div class="a3vol">選考の歩留まりは良好。<b>目標未達の主因は母集団（応募・紹介数）の不足</b>です。①認知される・②惹きつける（媒体/スカウト/エージェント拡大＋採用サイトでの魅力訴求）が最優先。立地・企業規模の不利はWEB訴求で補えます。</div>':'')+'</div>';}
+ if(R.volShort||R.targetUp){h+='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">目標達成に必要な応募 約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol"><b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
  h+='<div class="a3card a3cta"><b>🤝 次回ご提案</b><div style="font-size:11.5px;margin-top:3px">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div></div></div>';
  h+='</div>'; /* grid close */
  var order=diagOrder();
