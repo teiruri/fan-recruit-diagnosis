@@ -184,6 +184,18 @@ body.mode-meet .unit{font-size:15px}
 .bmfix{color:var(--muted);font-size:12.5px}
 @media(max-width:680px){.bmpair{flex:0 0 100%}}
 /* === 口コミ分析 === */
+.mrevcard{background:#fbfdff;border:1px dashed #bcd4e6}
+.mrevgrid{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:9px;align-items:flex-end}
+.mrevgrid label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#3a4a55}
+.mrevgrid input,.mrevgrid select{height:32px;border:1px solid #c7d2da;border-radius:6px;padding:0 7px;font-size:14px}
+.mrevgrid input[type=number]{width:78px;text-align:center}
+.mrevgrid select{font-size:13px}
+.mrevu{font-size:11px;color:#8a97a0;font-weight:400;margin-left:-2px}
+.mrevsub{font-size:12px;font-weight:700;color:#1f8c84;margin:11px 0 5px}
+.mrevcats{display:flex;flex-wrap:wrap;gap:7px 12px}
+.mrevcat{display:flex;align-items:center;gap:5px;font-size:12px;color:#3a4a55;background:#fff;border:1px solid #e0e8ee;border-radius:6px;padding:3px 8px}
+.mrevcat input{width:56px;height:28px;text-align:center;border:1px solid #c7d2da;border-radius:5px;font-size:13px}
+.mrevq{margin-top:10px}.mrevwide{flex:1 1 300px;align-items:center}.mrevwide input{flex:1;min-width:160px}
 .rvgauge{flex:0 0 auto;text-align:center;background:linear-gradient(180deg,#f4fbff,#e6f5fd);border:1px solid #bfe6f8;border-radius:12px;padding:10px 18px;min-width:170px}
 .rvnum{font-size:34px;font-weight:bold;line-height:1}
 .rvcats{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;margin-top:12px}
@@ -410,6 +422,22 @@ body>*{display:none!important}
 
   <div class="sec prep-only">口コミ・評判分析</div>
   <div class="sec meet-only">② 口コミ・評判分析｜候補者から見た御社</div>
+  <div class="card mrevcard">
+    <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><b>✍️ 口コミを手入力（OpenWork / エンライトハウス等）</b><span class="muted" style="font-size:11.5px">口コミサイトはログインが必要でAIが読めない場合があります。画面で見えている数値をここに入力すると、レーダー・診断にそのまま反映されます。</span></div>
+    <div class="mrevgrid">
+      <label>出典<select id="mrev_source" onchange="mrevUpdate()"><option>OpenWork</option><option>エンライトハウス</option><option>Lighthouse</option><option>転職会議</option><option>Googleクチコミ</option><option>その他</option></select></label>
+      <label>総合評価<input id="mrev_rating" type="number" min="0" max="5" step="0.1" placeholder="例 3.6" oninput="mrevUpdate()"><span class="mrevu">/5</span></label>
+      <label>口コミ件数<input id="mrev_count" type="number" min="0" step="1" placeholder="例 124" oninput="mrevUpdate()"><span class="mrevu">件</span></label>
+      <label>推奨度<input id="mrev_rec" type="number" min="0" max="100" step="1" placeholder="例 68" oninput="mrevUpdate()"><span class="mrevu">%</span></label>
+    </div>
+    <div class="mrevsub">カテゴリ別スコア（5点満点・分かる範囲で）</div>
+    <div class="mrevcats" id="mrevCats"></div>
+    <div class="mrevgrid mrevq">
+      <label class="mrevwide">👍 代表的な良い口コミ<input id="mrev_good" type="text" placeholder="例：裁量が大きく成長できる" oninput="mrevUpdate()"></label>
+      <label class="mrevwide">⚠️ 気になる口コミ<input id="mrev_bad" type="text" placeholder="例：繁忙期は残業が多い" oninput="mrevUpdate()"></label>
+    </div>
+    <div class="row" style="gap:8px;margin-top:8px"><button class="btn" type="button" onclick="mrevClear()">クリア</button><span class="muted" style="font-size:11px">※AI分析（貼り戻し）で口コミが取れている場合は、この手入力が優先されます。</span></div>
+  </div>
   <div class="card"><div id="reviews"></div></div>
 
   <div id="compareWrap">
@@ -503,6 +531,8 @@ var defs=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casu
 var cfg={doc:true,casual:false,i1:true,i2:false,final:true};
 var vals={};
 var hpnotes={};
+function defaultMrev(){return{source:"OpenWork",rating:"",reviewCount:"",recommend:"",cats:[{name:"働きがい・成長",score:""},{name:"風通し・人間関係",score:""},{name:"待遇・報酬",score:""},{name:"ワークライフバランス",score:""},{name:"経営・将来性",score:""}],goodQuote:"",badQuote:""};}
+var mrev=defaultMrev();
 var R={filled:false};
 var showResult=false;
 var liteAns=[null,null,null];
@@ -573,7 +603,14 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
 function cleanTxt(s){s=String(s==null?"":s).trim();if(!s)return"";if(s.indexOf("WEBでは不可")>=0||s.indexOf("当日ヒアリング")>=0)return"";if(s==="口コミ等"||s==="WEB上の所見（事実）"||s==="気づき・仮説")return"";return s;}
 function stars(r){var n=Math.round(parseFloat(r)||0);n=Math.max(0,Math.min(5,n));if(!n)return"";var s="";for(var i=0;i<5;i++)s+=(i<n?"★":"☆");return '<span style="color:#F5A623;letter-spacing:1px">'+s+'</span>';}
 function parseAI(t){if(!t||!t.trim())return null;var s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<0||e<=s)return null;try{return JSON.parse(t.slice(s,e+1));}catch(err){return null;}}
-function getAI(){return parseAI(document.getElementById("aiNote").value);}
+function mrevFilled(){return !!(mrev&&(mrev.rating||mrev.reviewCount||mrev.recommend||(mrev.cats&&mrev.cats.some(function(c){return c&&c.score;}))||mrev.goodQuote||mrev.badQuote));}
+function getAI(){var d=parseAI(document.getElementById("aiNote").value);
+ if(mrevFilled()){if(!d)d={};var r=Object.assign({},d.reviews||{});
+  if(mrev.source)r.source=mrev.source;if(mrev.rating)r.rating=mrev.rating;if(mrev.reviewCount)r.reviewCount=mrev.reviewCount;if(mrev.recommend)r.recommend=mrev.recommend;
+  var mc=(mrev.cats||[]).filter(function(c){return c&&c.name&&c.score;});if(mc.length)r.categories=mc.map(function(c){return{name:c.name,score:c.score};});
+  var qs=[];if(mrev.goodQuote)qs.push({type:"good",text:mrev.goodQuote});if(mrev.badQuote)qs.push({type:"bad",text:mrev.badQuote});if(qs.length)r.quotes=qs;
+  d.reviews=r;}
+ return d;}
 
 function cssv(v){var m={"var(--ok)":"#1f9e6a","var(--cyanD)":"#0089c4","var(--warn)":"#d98a0c","var(--bad)":"#d8453c"};return m[v]||v;}
 function chartSVG(sc){
@@ -658,6 +695,13 @@ function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92
   s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12.5"><tspan fill="#3a4a53">'+esc(cats[i].name)+'</tspan><tspan fill="'+col+'" font-weight="bold"> '+esc(cats[i].score)+'</tspan></text>';}
  return s+'</svg>';}
 function autoFillFunnel(){var act=activeDefs(),ap=vals.apply||0;if(!ap){alert("先に「応募数」を入力してください。");return;}for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,bn=benchOf(a,b);vals[b]=Math.round((vals[a]||0)*bn/100);}renderSurvey();recompute();}
+function renderMrevCats(){var h=document.getElementById("mrevCats");if(!h)return;h.innerHTML=mrev.cats.map(function(c,i){return '<label class="mrevcat"><span>'+esc(c.name)+'</span><input type="number" min="0" max="5" step="0.1" data-i="'+i+'" value="'+(c.score||"")+'" placeholder="–" oninput="mrevCatIn(this)"><span class="mrevu">/5</span></label>';}).join("");}
+function mrevCatIn(el){var i=+el.getAttribute("data-i");if(mrev.cats[i])mrev.cats[i].score=String(el.value).trim();mrevApply();}
+function mrevRead(){var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():"";};mrev.source=g("mrev_source");mrev.rating=g("mrev_rating");mrev.reviewCount=g("mrev_count");mrev.recommend=g("mrev_rec");mrev.goodQuote=g("mrev_good");mrev.badQuote=g("mrev_bad");}
+function mrevApply(){renderReviews();renderCompare();recompute();}
+function mrevUpdate(){mrevRead();mrevApply();}
+function fillMrevInputs(){var s=function(id,v){var e=document.getElementById(id);if(e)e.value=(v==null?"":v);};s("mrev_source",mrev.source);s("mrev_rating",mrev.rating);s("mrev_count",mrev.reviewCount);s("mrev_rec",mrev.recommend);s("mrev_good",mrev.goodQuote);s("mrev_bad",mrev.badQuote);renderMrevCats();}
+function mrevClear(){mrev=defaultMrev();fillMrevInputs();mrevApply();}
 function renderReviews(){var host=document.getElementById("reviews");if(!host)return;var d=getAI(),rv=d&&d.reviews;
  var cats=rv&&rv.categories?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
  var qs=rv&&rv.quotes?rv.quotes.filter(function(q){return q&&q.text;}):[];
@@ -929,7 +973,7 @@ function updateResultGate(){var g=document.getElementById("resultGate");if(!g)re
  else{g.innerHTML='<div class="gatewait">診断結果は、選考数値をすべて入力すると表示できます<br>（残り '+miss.length+' 項目：'+miss.map(function(d){return STAGE_NOUN[d.k];}).join("・")+'）</div>';}}
 function revealResult(){showResult=true;document.body.classList.add("show-result");renderA3();updateResultGate();var r=document.getElementById("a3report");if(r&&r.scrollIntoView)r.scrollIntoView({behavior:"smooth",block:"start"});}
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.body.classList.remove("show-result");showResult=false;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,actions:steps.map(function(s){return s.on.slice();})};}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,mrev:mrev,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
@@ -939,7 +983,7 @@ function copyJson(){var t=document.getElementById("jsonText");if(!t)return;t.foc
 function downloadJson(){var t=document.getElementById("jsonText"),o=document.getElementById("jsonOverlay");if(!t)return;var fn=o.getAttribute("data-fn")||"採用診断_診断.json",m=document.getElementById("jsonMsg");try{var blob=new Blob([t.value],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);if(m)m.textContent="保存しました";return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},1500);if(m)m.textContent="ダウンロードしました";}catch(e){if(m)m.textContent="保存に失敗："+(e&&e.message?e.message:e);}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var txt=String(rd.result||"").replace(/^﻿/,"").trim();var st;try{st=JSON.parse(txt);}catch(e){alert("JSONの読み込みに失敗しました。\nこのファイルはJSON形式ではないか、壊れています。\n\n詳細："+e.message+"\n先頭："+txt.slice(0,50));ev.target.value="";return;}try{applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e2){alert("データの適用中にエラーが発生しました。\n詳細："+e2.message);}ev.target.value="";};rd.onerror=function(){alert("ファイルの読み込みに失敗しました（アクセス権をご確認ください）。");};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
@@ -1057,7 +1101,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
 function printReport(){renderA3();window.print();}
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls("urls");seedUrls("rivalUrls");renderBench();renderPrepNumbers();refreshList();buildStepper();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
+seedUrls("urls");seedUrls("rivalUrls");renderBench();renderPrepNumbers();refreshList();buildStepper();fillMrevInputs();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
 document.getElementById("v_target").addEventListener("input",function(){vals.target=+this.value||0;recompute();});
 document.getElementById("hireVal").addEventListener("input",function(){vals.hireval=+this.value||0;recompute();});
 document.getElementById("siteStatus").addEventListener("change",function(){vals.nosite=+this.value||0;recompute();});
