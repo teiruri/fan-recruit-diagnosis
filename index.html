@@ -724,7 +724,23 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
 /* AIプレースホルダ文言（顧客同席画面に不適切）を除外 */
 function cleanTxt(s){s=String(s==null?"":s).trim();if(!s)return"";if(s.indexOf("WEBでは不可")>=0||s.indexOf("当日ヒアリング")>=0)return"";if(s==="口コミ等"||s==="WEB上の所見（事実）"||s==="気づき・仮説")return"";return s;}
 function stars(r){var n=Math.round(parseFloat(r)||0);n=Math.max(0,Math.min(5,n));if(!n)return"";var s="";for(var i=0;i<5;i++)s+=(i<n?"★":"☆");return '<span style="color:#F5A623;letter-spacing:1px">'+s+'</span>';}
-function parseAI(t){if(!t||!t.trim())return null;var s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<0||e<=s)return null;try{return JSON.parse(t.slice(s,e+1));}catch(err){return null;}}
+/* ひな形（プロンプトのスキーマ説明文）がそのまま貼られた場合に実データと誤認しないためのサニタイズ */
+var PH_PAT=[/不明なら空文字/,/空文字/,/（1文/,/1文）/,/2〜3文/,/1〜2文/,/1〜2個/,/3〜5点/,/1〜5の整数/,/サイト名（例/,/一言（例/,/職種（例/,/ステップ名（例/,/（例[:：]\s*\d/,/（例[:：]難しい/,/（例[:：]やや希少/,/重要度順3点/,/骨子[①-⑳]/,/最重要）/,/（具体的に）/,/期待効果を数値で）/,/前振りトーク$/,/打診する一言/,/かの別＋対象職種/,/^[①-⑳]$/];
+var PH_EXACT={'5点満点':1,'一言':1,'良い評判・強み':1,'気になる評判・懸念点':1,'WEB上の所見（事実）':1,'気づき・仮説':1,'理由②':1,'理由③':1,'投稿者の職種':1};
+function isPH(t){if(PH_EXACT[t])return true;for(var i=0;i<PH_PAT.length;i++)if(PH_PAT[i].test(t))return true;return false;}
+var NUMKEY={score:1,rating:1,self:1,rival:1,difficulty:1,rarity:1,recommend:1,reviewCount:1};
+function sanitizeAI(o,k){
+ if(Array.isArray(o))return o.map(function(x){return sanitizeAI(x,k);});
+ if(o&&typeof o==="object"){var r={};for(var kk in o)r[kk]=sanitizeAI(o[kk],kk);return r;}
+ if(typeof o==="string"){var t=o.trim();if(!t)return"";if(isPH(t))return"";if(NUMKEY[k]&&!/^\d+(\.\d+)?\s*[%％]?$/.test(t))return"";return o;}
+ return o;}
+function aiHasContent(o,k){
+ if(typeof o==="string")return o.trim().length>2;
+ if(typeof o==="number")return true;
+ if(Array.isArray(o))return o.some(function(x){return aiHasContent(x,k);});
+ if(o&&typeof o==="object"){for(var kk in o){if(kk==="step"||kk==="axis"||kk==="name"||kk==="type")continue;if(aiHasContent(o[kk],kk))return true;}return false;}
+ return false;}
+function parseAI(t){if(!t||!t.trim())return null;var s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<0||e<=s)return null;try{return sanitizeAI(JSON.parse(t.slice(s,e+1)));}catch(err){return null;}}
 function mrevFilled(){return !!(mrev&&(mrev.rating||mrev.reviewCount||mrev.recommend||(mrev.cats&&mrev.cats.some(function(c){return c&&c.score;}))||mrev.goodQuote||mrev.badQuote||mrev.jobNote));}
 function getAI(){var d=parseAI(document.getElementById("aiNote").value);
  if(mrevFilled()){if(!d)d={};var r=Object.assign({},d.reviews||{});
@@ -918,8 +934,10 @@ function onAi(){var v=document.getElementById("aiNote").value,s=document.getElem
 function onAi2(){var t2=document.getElementById("aiNote2");if(!t2)return;var v=t2.value;document.getElementById("aiNote").value=v;
  var m=document.getElementById("aiNote2Msg");
  if(m){if(!v.trim())m.textContent='';
-  else if(parseAI(v)){var d=parseAI(v);var got=[];if(d.gapAnalysis)got.push('本日の発見');if(d.proposals)got.push('施策の設計指針');if(d.nextMeeting)got.push('次回ご提案');if(d.steps)got.push('課題・原因・解決策');if(d.reviews)got.push('口コミ');m.innerHTML='<span style="color:var(--ok);font-weight:bold">✔ 分析結果を取り込みました</span>'+(got.length?'（反映：'+got.join('・')+'）':'')+'　下の「診断結果を表示」で最新の内容になります。';}
-  else m.innerHTML='<span style="color:var(--warn);font-weight:bold">⚠ JSONとして読み取れません。</span>AIの出力全体（{ から } まで）を貼り付けてください。';}
+  else{var d=parseAI(v);
+   if(!d)m.innerHTML='<span style="color:var(--warn);font-weight:bold">⚠ JSONとして読み取れません。</span>AIの出力全体（{ から } まで）を貼り付けてください。';
+   else if(!aiHasContent(d))m.innerHTML='<span style="color:var(--warn);font-weight:bold">⚠ ひな形（テンプレート）のままのようです。</span>プロンプトをChatGPT/Claudeで実行し、<b>値が入った出力JSON</b>を貼り付けてください（プロンプト自体を貼るのではありません）。';
+   else{var got=[];if(aiHasContent(d.gapAnalysis))got.push('本日の発見');if(aiHasContent(d.proposals))got.push('施策の設計指針');if(aiHasContent(d.nextMeeting))got.push('次回ご提案');if(aiHasContent(d.steps))got.push('課題・原因・解決策');if(aiHasContent(d.reviews))got.push('口コミ');m.innerHTML='<span style="color:var(--ok);font-weight:bold">✔ 分析結果を取り込みました</span>'+(got.length?'（反映：'+got.join('・')+'）':'')+'　下の「診断結果を表示」で最新の内容になります。';}}}
  onAi();}
 function periodStr(){var f=document.getElementById("periodFrom").value,t=document.getElementById("periodTo").value;if(!f&&!t)return"";return (f||"（未定）")+" 〜 "+(t||"（未定）");}
 function updateMeetHead(){var c=document.getElementById("company").value.trim();var e=document.getElementById("meetCompany");if(e)e.textContent=c||"（会社名）";var mm=document.getElementById("meetMeta");if(mm){var j=document.getElementById("jobtitle").value.trim(),p=periodStr(),parts=[];if(j)parts.push("職種："+j);if(p)parts.push("対象期間："+p);mm.textContent=parts.join("　／　");}}
