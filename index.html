@@ -549,6 +549,16 @@ body>*{display:none!important}
   <div id="compareWrap">
     <div class="sec prep-only">競合比較（口コミ・WEB情報）</div>
     <div class="sec meet-only">競合比較｜自社 vs 競合（口コミ・WEB情報）</div>
+    <div class="card mrevcard prep-only">
+      <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><b>✍️ 競合の口コミを手入力（OpenWork / エンライトハウス等）</b><span class="muted" style="font-size:11.5px">競合の口コミもログイン必須でAIが読めない場合があります。見えている数値を入力すると比較レーダー・診断に反映されます（AI分析より優先）。</span></div>
+      <div class="mrevgrid">
+        <label>競合名<input id="mrev2_name" type="text" placeholder="例：株式会社◯◯" style="width:180px" oninput="mrev2Update()"></label>
+        <label>総合評価<input id="mrev2_rating" type="number" min="0" max="5" step="0.1" placeholder="例 3.9" oninput="mrev2Update()"><span class="mrevu">/5</span></label>
+      </div>
+      <div class="mrevsub" style="color:#c07a00">カテゴリ別スコア（5点満点・分かる範囲で）</div>
+      <div class="mrevcats" id="mrev2Cats"></div>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="btn" type="button" onclick="mrev2Clear()">クリア</button></div>
+    </div>
     <div class="card"><div id="compare"></div></div>
   </div>
 
@@ -655,6 +665,9 @@ function defaultMrev(){return{source:"OpenWork",rating:"",reviewCount:"",recomme
 var mrev=defaultMrev();
 function defaultTreq(){return{must:"",want:"",diff:"",rarity:""};}
 var treq=defaultTreq();
+function defaultMrev2(){return{name:"",rating:"",cats:[{name:"働きがい・成長",score:""},{name:"風通し・人間関係",score:""},{name:"待遇・報酬",score:""},{name:"ワークライフバランス",score:""},{name:"経営・将来性",score:""}]};}
+var mrev2=defaultMrev2();
+function mrev2Filled(){return !!(mrev2&&(mrev2.name||mrev2.rating||(mrev2.cats&&mrev2.cats.some(function(c){return c&&c.score;}))));}
 var R={filled:false};
 var showResult=false;
 var liteAns=[null,null,null];
@@ -750,6 +763,10 @@ function getAI(){var d=parseAI(document.getElementById("aiNote").value);
   if(mrev.jobNote)r.jobScope=mrev.jobNote;
   d.reviews=r;}
  if(treq.diff||treq.rarity){if(!d)d={};var ta=Object.assign({},d.targetAnalysis||{});if(treq.diff)ta.difficulty=treq.diff;if(treq.rarity)ta.rarity=treq.rarity;d.targetAnalysis=ta;}
+ if(mrev2Filled()){if(!d)d={};var c2=Object.assign({},d.competitor||{});
+  if(mrev2.name)c2.name=mrev2.name;if(mrev2.rating)c2.rating=mrev2.rating;
+  var mc2=(mrev2.cats||[]).filter(function(c){return c&&c.name&&c.score;});if(mc2.length)c2.categories=mc2.map(function(c){return{name:c.name,score:c.score};});
+  d.competitor=c2;}
  return d;}
 
 function cssv(v){var m={"var(--ok)":"#1f9e6a","var(--cyanD)":"#0089c4","var(--warn)":"#d98a0c","var(--bad)":"#d8453c"};return m[v]||v;}
@@ -842,6 +859,11 @@ function mrevApply(){renderReviews();renderCompare();recompute();}
 function mrevUpdate(){mrevRead();mrevApply();}
 function fillMrevInputs(){var s=function(id,v){var e=document.getElementById(id);if(e)e.value=(v==null?"":v);};s("mrev_source",mrev.source);s("mrev_rating",mrev.rating);s("mrev_count",mrev.reviewCount);s("mrev_rec",mrev.recommend);s("mrev_good",mrev.goodQuote);s("mrev_bad",mrev.badQuote);s("mrev_jobnote",mrev.jobNote);renderMrevCats();}
 function mrevClear(){mrev=defaultMrev();fillMrevInputs();mrevApply();}
+function renderMrev2Cats(){var h=document.getElementById("mrev2Cats");if(!h)return;h.innerHTML=mrev2.cats.map(function(c,i){return '<label class="mrevcat"><span>'+esc(c.name)+'</span><input type="number" min="0" max="5" step="0.1" data-i="'+i+'" value="'+(c.score||"")+'" placeholder="–" oninput="mrev2CatIn(this)"><span class="mrevu">/5</span></label>';}).join("");}
+function mrev2CatIn(el){var i=+el.getAttribute("data-i");if(mrev2.cats[i])mrev2.cats[i].score=String(el.value).trim();mrevApply();}
+function mrev2Update(){var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():"";};mrev2.name=g("mrev2_name");mrev2.rating=g("mrev2_rating");mrevApply();}
+function fillMrev2Inputs(){var s=function(id,v){var e=document.getElementById(id);if(e)e.value=(v==null?"":v);};s("mrev2_name",mrev2.name);s("mrev2_rating",mrev2.rating);renderMrev2Cats();}
+function mrev2Clear(){mrev2=defaultMrev2();fillMrev2Inputs();mrevApply();}
 function diffLabel(n){return ['','易しい','やや易しい','標準','難しい','非常に困難'][n]||'';}
 function rarityLabel(n){return ['','豊富','やや豊富','標準','やや希少','希少'][n]||'';}
 function starGauge(n,col){n=Math.max(0,Math.min(5,n||0));var s='';for(var i=1;i<=5;i++)s+='<span style="color:'+(i<=n?col:'#d5dde2')+'">★</span>';return s;}
@@ -902,7 +924,7 @@ function radarCompareSVG(selfC,rivalC){var n=selfC.length;if(n<3)return"";var cx
  for(var i=0;i<n;i++){var lp=pt(i,R+15),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12" fill="#3a4a53">'+esc(selfC[i].name)+'</text>';}
  return s+'</svg>';}
 function renderCompare(){var wrap=document.getElementById("compareWrap");if(!wrap)return;
- var hasRival=getUrls("rivalUrls").length>0,meet=/mode-meet/.test(document.body.className);
+ var hasRival=getUrls("rivalUrls").length>0||mrev2Filled(),meet=/mode-meet/.test(document.body.className);
  wrap.style.display=(meet&&!hasRival)?"none":"";
  if(meet&&!hasRival)return;
  var host=document.getElementById("compare");if(!host)return;
@@ -1171,7 +1193,7 @@ function updateResultGate(){var g=document.getElementById("resultGate");if(!g)re
 function scrollToNum(k){var meet=/mode-meet/.test(document.body.className);var e=document.getElementById((meet?"v_":"pv_")+k)||document.getElementById("v_"+k)||document.getElementById("pv_"+k);if(e){if(e.scrollIntoView)e.scrollIntoView({behavior:"smooth",block:"center"});try{e.focus();}catch(_){}}}
 function revealResult(){showResult=true;document.body.classList.add("show-result");renderA3();updateResultGate();var r=document.getElementById("a3report");if(r&&r.scrollIntoView)r.scrollIntoView({behavior:"smooth",block:"start"});}
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.body.classList.remove("show-result");showResult=false;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,mrev:mrev,treq:treq,numSet:numSet,actions:steps.map(function(s){return s.on.slice();})};}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,mrev:mrev,mrev2:mrev2,treq:treq,numSet:numSet,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
@@ -1181,7 +1203,7 @@ function copyJson(){var t=document.getElementById("jsonText");if(!t)return;t.foc
 function downloadJson(){var t=document.getElementById("jsonText"),o=document.getElementById("jsonOverlay");if(!t)return;var fn=o.getAttribute("data-fn")||"採用診断_診断.json",m=document.getElementById("jsonMsg");try{var blob=new Blob([t.value],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);if(m)m.textContent="保存しました";return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},1500);if(m)m.textContent="ダウンロードしました";}catch(e){if(m)m.textContent="保存に失敗："+(e&&e.message?e.message:e);}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var txt=String(rd.result||"").replace(/^﻿/,"").trim();var st;try{st=JSON.parse(txt);}catch(e){alert("JSONの読み込みに失敗しました。\nこのファイルはJSON形式ではないか、壊れています。\n\n詳細："+e.message+"\n先頭："+txt.slice(0,50));ev.target.value="";return;}try{applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e2){alert("データの適用中にエラーが発生しました。\n詳細："+e2.message);}ev.target.value="";};rd.onerror=function(){alert("ファイルの読み込みに失敗しました（アクセス権をご確認ください）。");};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=v;renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();mrev2=Object.assign(defaultMrev2(),st.mrev2||{});if(st.mrev2&&st.mrev2.cats)mrev2.cats=defaultMrev2().cats.map(function(c,i){return{name:c.name,score:(st.mrev2.cats[i]&&st.mrev2.cats[i].score)||""};});fillMrev2Inputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=v;renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
@@ -1295,7 +1317,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  h+='<div class="a3col">';
  var rv=d&&d.reviews,selfCats=(rv&&rv.categories)?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
  var comp2=d&&d.competitor,rivalCats=(comp2&&comp2.categories)?comp2.categories.filter(function(c){return c&&c.name;}):[];
- var hasRival=getUrls("rivalUrls").length>0&&rivalCats.length>=3&&selfCats.length>=3;
+ var hasRival=(getUrls("rivalUrls").length>0||mrev2Filled())&&rivalCats.length>=3&&selfCats.length>=3;
  var a3rvcav='<div class="a3rvcav">🏷 全社（職種横断）の評判。対象職種'+(job?'「'+esc(job)+'」':'')+'固有はヒアリングで補完'+(rv&&rv.jobScope?'／'+esc(rv.jobScope):'')+'</div>';
  if(selfCats.length>=3){h+='<div class="a3card"><h4>口コミ・評判'+(hasRival?'（自社 vs '+esc(comp2.name||"競合")+'）':'')+(rv.rating?'　総合 '+esc(rv.rating):'')+'</h4>'+(hasRival?radarCompareSVG(selfCats,rivalCats):radarSVG(selfCats))+(hasRival?'<div class="a3leg"><span><i style="background:#00B0F0"></i>自社</span><span><i style="background:#F39800"></i>'+esc(comp2.name||"競合")+'</span></div>':'')+a3rvcav+'</div>';}
  else if(rv&&(rv.summary||rv.rating)){h+='<div class="a3card"><h4>口コミ・評判'+(rv.rating?'　総合 '+esc(rv.rating)+'/5':'')+'</h4><div style="font-size:11px">'+esc(rv.summary||"")+'</div>'+a3rvcav+'</div>';}
@@ -1334,7 +1356,7 @@ function printReport(){
 }
 
 ["doc","casual","i2","final"].forEach(function(k){var c=document.querySelector('#cfg .chip[data-k="'+k+'"]');if(cfg[k])c.classList.add("on");});
-seedUrls("urls");seedUrls("rivalUrls");renderBench();renderPrepNumbers();refreshList();buildStepper();fillMrevInputs();fillTreqInputs();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
+seedUrls("urls");seedUrls("rivalUrls");renderBench();renderPrepNumbers();refreshList();buildStepper();fillMrevInputs();fillMrev2Inputs();fillTreqInputs();renderReviews();renderSurvey();["company","jobtitle","periodFrom","periodTo"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){updateMeetHead();recompute();});});
 document.getElementById("v_target").addEventListener("input",function(){vals.target=+this.value||0;recompute();});
 document.getElementById("hireVal").addEventListener("input",function(){vals.hireval=+this.value||0;recompute();});
 document.getElementById("siteStatus").addEventListener("change",function(){vals.nosite=+this.value||0;recompute();});
