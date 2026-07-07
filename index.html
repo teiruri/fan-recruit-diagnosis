@@ -284,6 +284,17 @@ body.mode-meet .rvhead b{font-size:17px}
 body.mode-meet .svnlbl b{font-size:16px}
 body.mode-meet .svndesc{font-size:13px}
 .unit{font-size:12px;color:var(--muted);flex:0 0 auto}
+/* 新卒2ライン入力（早期選考／本選考） */
+.lnlbl{font-size:11px;font-weight:bold;white-space:nowrap;border-radius:5px;padding:3px 8px;flex:0 0 auto}
+.lnlbl.le{background:#e8f0fb;color:#2F66A8}
+.lnlbl.lm{background:#e6f5ec;color:#1f7a4d}
+.lnum{width:74px;height:38px;font-size:16px}
+.sumv{font-size:13px;color:var(--ink);white-space:nowrap}
+.sumv b{font-size:18px}
+body.mode-meet .lnlbl{font-size:12.5px}
+body.mode-meet .lnum{width:86px;height:46px;font-size:20px}
+body.mode-meet .sumv{font-size:15px}
+body.mode-meet .sumv b{font-size:22px}
 body.mode-meet .unit{font-size:15px}
 .bmflow{display:flex;flex-direction:column;gap:8px}
 .bmrow{display:flex;align-items:center;gap:10px}
@@ -738,10 +749,34 @@ body>*{display:none!important}
 <div id="jsonOverlay" class="no-print"></div>
 
 <script>
-var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50,am:34},"新卒採用":{ad:35,dm:75,mm:55,mo:40,oa:45,am:25},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45,am:28},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55,am:44},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50,am:38},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50,am:34},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55,am:38},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48,am:24},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52,am:29},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55,am:20}};
+var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50,am:34},"新卒採用":{aa:55,ad:35,dm:75,mm:55,mo:40,oa:45,am:25},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45,am:28},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55,am:44},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50,am:38},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50,am:34},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55,am:38},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48,am:24},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52,am:29},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55,am:20}};
 var bm=Object.assign({},presets["標準"]);
-var defs=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casual",n:"カジュアル面談",opt:1},{k:"i1",n:"一次面接",fix:1},{k:"i2",n:"二次面接",opt:1},{k:"final",n:"最終面接",opt:1},{k:"offer",n:"内定",fix:1},{k:"accept",n:"承諾",fix:1}];
-var cfg={doc:true,casual:false,i1:true,i2:false,final:true};
+var DEFS_CAREER=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casual",n:"カジュアル面談",opt:1},{k:"i1",n:"一次面接",fix:1},{k:"i2",n:"二次面接",opt:1},{k:"final",n:"最終面接",opt:1},{k:"offer",n:"内定",fix:1},{k:"accept",n:"承諾",fix:1}];
+var DEFS_SHIN=[{k:"apply",n:"エントリー・予約",fix:1},{k:"attend",n:"説明会・インターン参加",fix:1},{k:"doc",n:"ES・書類通過",opt:1},{k:"i1",n:"一次選考",fix:1},{k:"i2",n:"二次選考",fix:1},{k:"i3",n:"三次選考",opt:1},{k:"final",n:"最終選考",fix:1},{k:"offer",n:"内々定・内定",fix:1},{k:"accept",n:"内定承諾",fix:1}];
+var defs=DEFS_CAREER.map(function(d){return Object.assign({},d);});
+/* 新卒2ライン（早期選考=E／本選考=M）の内訳値 */
+var valsE={},valsM={},lineTouched={};
+var SHIN_L1={apply:"インターン予約",attend:"インターン参加"};
+var SHIN_L2={apply:"エントリー",attend:"説明会参加"};
+function shinDual(k){return isShin()&&k!=="offer"&&k!=="accept";}
+function lineInput(k,which,el){
+ var raw=String(el.value).trim();
+ (which==="E"?valsE:valsM)[k]=+el.value||0;
+ lineTouched[k+which]=raw!=="";
+ vals[k]=(valsE[k]||0)+(valsM[k]||0);
+ numSet[k]=!!(lineTouched[k+"E"]||lineTouched[k+"M"]);
+ var other=document.getElementById((el.id.charAt(0)==="p"?"v":"pv")+which+"_"+k);
+ if(other&&other.value!==el.value)other.value=el.value;
+ ["sum_"+k,"psum_"+k].forEach(function(id){var s=document.getElementById(id);if(s)s.textContent=numSet[k]?vals[k]:"–";});
+ recompute();
+}
+function bindLineInputs(prefix,act){
+ act.forEach(function(dd){
+  if(!shinDual(dd.k))return;
+  ["E","M"].forEach(function(wh){var el=document.getElementById(prefix+wh+"_"+dd.k);if(el)el.oninput=function(){lineInput(dd.k,wh,this);};});
+ });
+}
+var cfg={doc:true,casual:false,i1:true,i2:false,final:true,i3:false};
 var vals={};
 var numSet={};
 function numFilled(k){return numSet[k]===true;}
@@ -786,7 +821,7 @@ var steps=[
  {name:"活躍を支える",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[1,0,0,0,0],crit:["入社初期の立ち上がりを支援するプログラムがある状態","入社後に定期的な面談でフォローできている状態","早期離職が少なく定着している状態","社員紹介（リファラル）が生まれる仕組み・実績がある状態","中途入社者の活躍事例・ロールモデルがある状態"]}
 ];
 /* 各ファネルkeyがどのFANサイクルステップに属するか */
-var KEYSTEP={apply:0,doc:1,casual:2,i1:2,i2:2,final:2,offer:3,accept:3};
+var KEYSTEP={apply:0,attend:1,doc:1,casual:2,i1:2,i2:2,i3:2,final:2,offer:3,accept:3};
 /* 数値欄の名称・説明（〔前段〕→〔この段階〕で自動生成） */
 var STAGE_NOUN={apply:"応募",doc:"書類通過",casual:"カジュアル面談",i1:"一次面接",i2:"二次面接",final:"最終面接",offer:"内定",accept:"承諾"};
 var STAGE_TITLE={apply:"応募数",doc:"書類選考の通過",casual:"カジュアル面談 実施",i1:"一次面接 実施",i2:"二次面接 実施",final:"最終面接 実施",offer:"内定",accept:"承諾（入社）"};
@@ -797,14 +832,25 @@ function isShin(){return rtype==='shinsotsu';}
 function recruitTitle(){return isShin()?'新卒採用':'中途採用';}
 function declAvg(){return isShin()?55:35;}
 function applyRtypeLabels(){
- if(isShin()){STAGE_NOUN.apply="エントリー";STAGE_NOUN.doc="ES・書類通過";STAGE_NOUN.accept="内定承諾";
-  STAGE_TITLE.apply="エントリー数";STAGE_TITLE.doc="ES・書類選考の通過";STAGE_TITLE.accept="内定承諾";
-  STAGE_ACT.doc="ES・書類を提出し通過した";STAGE_ACT.accept="内定承諾した";}
- else{STAGE_NOUN.apply="応募";STAGE_NOUN.doc="書類通過";STAGE_NOUN.accept="承諾";
-  STAGE_TITLE.apply="応募数";STAGE_TITLE.doc="書類選考の通過";STAGE_TITLE.accept="承諾（入社）";
-  STAGE_ACT.doc="書類を提出・通過した";STAGE_ACT.accept="承諾（入社）した";}
+ defs.length=0;(isShin()?DEFS_SHIN:DEFS_CAREER).forEach(function(d){defs.push(Object.assign({},d));});
+ if(isShin()){
+  STAGE_NOUN.apply="エントリー・予約";STAGE_NOUN.attend="説明会・インターン参加";STAGE_NOUN.doc="ES・書類通過";STAGE_NOUN.i1="一次選考";STAGE_NOUN.i2="二次選考";STAGE_NOUN.i3="三次選考";STAGE_NOUN.final="最終選考";STAGE_NOUN.offer="内々定・内定";STAGE_NOUN.accept="内定承諾";
+  STAGE_TITLE.apply="エントリー・インターン予約";STAGE_TITLE.attend="説明会・インターン参加";STAGE_TITLE.doc="ES・書類選考の通過";STAGE_TITLE.i1="一次選考 実施";STAGE_TITLE.i2="二次選考 実施";STAGE_TITLE.i3="三次選考 実施";STAGE_TITLE.final="最終選考 実施";STAGE_TITLE.offer="内々定・内定";STAGE_TITLE.accept="内定承諾";
+  STAGE_ACT.attend="説明会・インターンに参加した";STAGE_ACT.doc="ES・書類を提出し通過した";STAGE_ACT.i1="一次選考を実施した";STAGE_ACT.i2="二次選考を実施した";STAGE_ACT.i3="三次選考を実施した";STAGE_ACT.final="最終選考を実施した";STAGE_ACT.offer="内々定・内定を出した";STAGE_ACT.accept="内定承諾した";
+ }else{
+  STAGE_NOUN.apply="応募";STAGE_NOUN.doc="書類通過";STAGE_NOUN.i1="一次面接";STAGE_NOUN.i2="二次面接";STAGE_NOUN.final="最終面接";STAGE_NOUN.offer="内定";STAGE_NOUN.accept="承諾";
+  STAGE_TITLE.apply="応募数";STAGE_TITLE.doc="書類選考の通過";STAGE_TITLE.i1="一次面接 実施";STAGE_TITLE.i2="二次面接 実施";STAGE_TITLE.final="最終面接 実施";STAGE_TITLE.offer="内定";STAGE_TITLE.accept="承諾（入社）";
+  STAGE_ACT.doc="書類を提出・通過した";STAGE_ACT.i1="一次面接を実施した";STAGE_ACT.i2="二次面接を実施した";STAGE_ACT.final="最終面接を実施した";STAGE_ACT.offer="内定を出した";STAGE_ACT.accept="承諾（入社）した";
+ }
  defs.forEach(function(dd){if(STAGE_NOUN[dd.k])dd.n=STAGE_NOUN[dd.k];});
+ if(steps&&steps[1]&&steps[1].tog)steps[1].tog[0]=isShin()?"新卒採用サイトの充実":"キャリア採用サイトの充実";
+ renderCfg();
 }
+function renderCfg(){var host=document.getElementById('cfg');if(!host)return;
+ host.innerHTML=isShin()
+ ?'<span class="chip on lock">エントリー/予約・参加・一次・二次・最終・内定・承諾（固定）</span><span class="chip" data-k="doc">書類選考（ES）</span><span class="chip" data-k="i3">三次選考</span><span class="muted" style="font-size:11.5px">新卒は「早期選考（インターン）」と「本選考」の2ラインで入力します</span>'
+ :'<span class="chip on lock">応募・内定・承諾</span><span class="chip" data-k="doc">書類選考</span><span class="chip" data-k="casual">カジュアル面談</span><span class="chip on lock">一次面接</span><span class="chip" data-k="i2">二次面接</span><span class="chip" data-k="final">最終面接</span>';
+ host.querySelectorAll('.chip[data-k]').forEach(function(c){var k=c.dataset.k;c.classList.toggle('on',!!cfg[k]);c.onclick=function(){cfg[k]=!cfg[k];c.classList.toggle('on',cfg[k]);renderBench();renderPrepNumbers();renderSurvey();recompute();};});}
 function setRtype(t,keepBm){
  rtype=(t==='shinsotsu')?'shinsotsu':'career';
  var b1=document.getElementById('rtCareer'),b2=document.getElementById('rtShin');
@@ -832,7 +878,7 @@ var playbook=[
  {step:4,issue:"紹介が生まれる仕組みがない",solve:"リファラル（社員紹介）を仕組み化する",svc:"TRAY/リファラル支援"}
 ];
 function pbStep(i){return playbook.filter(function(p){return p.step===i;});}
-function benchOf(a,b){ if(a==="apply")return b==="doc"?bm.ad:(bm.am||50); if(a==="doc")return bm.dm; if(a==="casual")return 80; if(a==="final")return bm.mo; if(a==="i1"||a==="i2")return b==="offer"?bm.mo:bm.mm; if(a==="offer")return bm.oa; return 50; }
+function benchOf(a,b){ if(a==="apply")return b==="doc"?bm.ad:(b==="attend"?(bm.aa||55):(bm.am||50)); if(a==="attend")return b==="doc"?bm.ad:(bm.am||50); if(a==="doc")return bm.dm; if(a==="casual")return 80; if(a==="final")return bm.mo; if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?bm.mo:bm.mm; if(a==="offer")return bm.oa; return 50; }
 function gc(p,b){ if(p>=b)return "var(--ok)"; if(p>=b*0.85)return "var(--warn)"; return "var(--bad)"; }
 function lv(s){ if(s>=75)return["◎","var(--ok)"]; if(s>=60)return["○","var(--cyanD)"]; if(s>=40)return["△","var(--warn)"]; return["▲","var(--bad)"]; }
 function grade(s){ if(s>=75)return["S","良好"]; if(s>=60)return["A","標準"]; if(s>=40)return["B","要改善"]; return["C","要注力"]; }
@@ -891,7 +937,7 @@ function chartSVG(sc){
 /* ===== 準備UI（プリセット・選考プロセス） ===== */
 var ps=document.getElementById("preset");
 Object.keys(presets).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k;ps.appendChild(o);});
-function benchKey(a,b){if(a==="apply")return b==="doc"?"ad":"am";if(a==="doc")return "dm";if(a==="casual")return null;if(a==="i1"||a==="i2")return b==="offer"?"mo":"mm";if(a==="final")return "mo";if(a==="offer")return "oa";return null;}
+function benchKey(a,b){if(a==="apply")return b==="doc"?"ad":(b==="attend"?"aa":"am");if(a==="attend")return b==="doc"?"ad":"am";if(a==="doc")return "dm";if(a==="casual")return null;if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?"mo":"mm";if(a==="final")return "mo";if(a==="offer")return "oa";return null;}
 function renderBench(){var host=document.getElementById("benchFlow");if(!host)return;var act=activeDefs(),seen={},rows="";
  for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,key=benchKey(a,b);
   var pair='<div class="bmpair"><span class="bmstage">'+STAGE_NOUN[a]+'</span><span class="bmar">→</span><span class="bmstage">'+STAGE_NOUN[b]+'</span></div>';
@@ -924,17 +970,24 @@ function renderSurvey(){
    h+='<div class="svsub">数値の確認（人数）</div><div class="svnums">';
    h+=keysHere.map(function(dd){
     var idx=act.indexOf(dd),prevK=idx>0?act[idx-1].k:null;
-    var desc=dd.k==="apply"?"冒頭で設定した対象期間内の応募（エントリー）総数":((prevK?STAGE_NOUN[prevK]:"応募")+" → "+STAGE_ACT[dd.k]+"人数");
+    var desc=dd.k==="apply"?(isShin()?"対象期間内の本選考エントリー＋インターン予約の総数（2ライン合算）":"冒頭で設定した対象期間内の応募（エントリー）総数"):((prevK?STAGE_NOUN[prevK]:"応募")+" → "+STAGE_ACT[dd.k]+"人数");
+    if(shinDual(dd.k)){
+     return '<div class="svnum"><div class="svnlbl"><b>'+STAGE_TITLE[dd.k]+'</b><span class="svndesc">'+desc+'</span></div>'+
+      '<span class="lnlbl le">早期｜'+esc(SHIN_L1[dd.k]||STAGE_NOUN[dd.k])+'</span><input class="num lnum" id="vE_'+dd.k+'" type="number" min="0" value="'+(lineTouched[dd.k+"E"]?(valsE[dd.k]||0):"")+'">'+
+      '<span class="lnlbl lm">本選考｜'+esc(SHIN_L2[dd.k]||STAGE_NOUN[dd.k])+'</span><input class="num lnum" id="vM_'+dd.k+'" type="number" min="0" value="'+(lineTouched[dd.k+"M"]?(valsM[dd.k]||0):"")+'">'+
+      '<span class="unit sumv">計 <b id="sum_'+dd.k+'">'+(numSet[dd.k]?vals[dd.k]:"–")+'</b> 名</span><div class="gate2" id="gate_'+dd.k+'"></div></div>';
+    }
     return '<div class="svnum"><div class="svnlbl"><b>'+STAGE_TITLE[dd.k]+'</b><span class="svndesc">'+desc+'</span></div><input class="num" id="v_'+dd.k+'" type="number" min="0" value="'+(numSet[dd.k]?vals[dd.k]:"")+'"><span class="unit">名</span><div class="gate2" id="gate_'+dd.k+'"></div></div>';
    }).join("");
-   if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 未対応（放置）</b><span class="svndesc">応募したが書類選考含め何も対応していない数（放置）</span></div><input class="num" id="v_untouched" type="number" min="0" value="'+(vals.untouched||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（自動算出）</b><span class="svndesc">応募 − 書類通過 − 未対応 ＝ 書類で不合格にした数</span></div><b id="docfailDisp" style="font-size:20px;min-width:60px;text-align:center;color:var(--warn)">–</b><span class="unit">名</span><div class="gate2"></div></div>';}
+   if(i===1&&cfg.doc){h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 未対応（放置）</b><span class="svndesc">'+(isShin()?"参加後、書類選考含め何も対応していない数（放置）":"応募したが書類選考含め何も対応していない数（放置）")+'</span></div><input class="num" id="v_untouched" type="number" min="0" value="'+(vals.untouched||"")+'"><span class="unit">名</span><div class="gate2"></div></div>';h+='<div class="svnum"><div class="svnlbl"><b style="color:var(--warn)">うち 書類不合格（自動算出）</b><span class="svndesc">'+(isShin()?"参加":"応募")+' − 書類通過 − 未対応 ＝ 書類で不合格にした数</span></div><b id="docfailDisp" style="font-size:20px;min-width:60px;text-align:center;color:var(--warn)">–</b><span class="unit">名</span><div class="gate2"></div></div>';}
    h+='</div>';
   }
   h+='<div class="svsub">当該期間における取り組み（タップで選択）<span style="font-weight:normal;color:var(--muted)">　※各項目にカーソルを合わせると選択の目安が出ます</span></div><div class="row">'+s.tog.map(function(t,ti){var cr=(s.crit&&s.crit[ti])||"";return '<span class="chip'+(s.on[ti]?" on":"")+'" data-step="'+i+'" data-ti="'+ti+'" title="選択の目安：'+esc(cr)+'">'+t+'<span class="chiphelp" data-crit="'+esc(cr)+'">?</span></span>';}).join("")+'</div>';
   return h+'</div>';
  }).join("");
  host.querySelectorAll(".hpnote").forEach(function(inp){inp.oninput=function(){hpnotes[inp.dataset.hp]=inp.value;};});
- act.forEach(function(dd){var el=document.getElementById("v_"+dd.k);if(el)el.oninput=function(){numSet[dd.k]=String(this.value).trim()!=="";vals[dd.k]=+this.value||0;var p=document.getElementById("pv_"+dd.k);if(p)p.value=this.value;recompute();};});
+ act.forEach(function(dd){if(shinDual(dd.k))return;var el=document.getElementById("v_"+dd.k);if(el)el.oninput=function(){numSet[dd.k]=String(this.value).trim()!=="";vals[dd.k]=+this.value||0;var p=document.getElementById("pv_"+dd.k);if(p)p.value=this.value;recompute();};});
+ bindLineInputs("v",act);
  var ut=document.getElementById("v_untouched");if(ut)ut.oninput=function(){vals.untouched=+this.value||0;recompute();};
  host.querySelectorAll(".chip[data-step]").forEach(function(c){c.onclick=function(){c.classList.toggle("on");steps[+c.dataset.step].on[+c.dataset.ti]=c.classList.contains("on")?1:0;recompute();};});
  host.querySelectorAll(".chiphelp").forEach(function(el){el.onclick=function(e){e.stopPropagation();alert("選択の目安：\n"+(el.dataset.crit||""));};});
@@ -942,6 +995,14 @@ function renderSurvey(){
 
 /* ===== 準備ページ：選考数値の一括入力（アポ商談へ反映） ===== */
 function renderPrepNumbers(){var host=document.getElementById("prepNums");if(!host)return;var act=activeDefs();
+ if(isShin()){
+  var line=function(wh,lblMap,ttl,color){return '<div class="row" style="gap:12px;flex-wrap:wrap;margin-bottom:7px"><b style="flex:0 0 92px;color:'+color+';font-size:12.5px">'+ttl+'</b>'+act.map(function(dd){if(!shinDual(dd.k))return '';var lv2=(wh==="E"?valsE:valsM);var tKey=dd.k+wh;return '<span class="row" style="gap:4px"><span class="muted" style="font-size:11.5px">'+esc(lblMap[dd.k]||STAGE_NOUN[dd.k])+'</span><input type="number" min="0" id="pv'+wh+'_'+dd.k+'" value="'+(lineTouched[tKey]?(lv2[dd.k]||0):"")+'" style="width:60px;height:32px;text-align:center;font-weight:bold;font-size:14px"><span class="muted">名</span></span>';}).join("")+'</div>';};
+  host.innerHTML=line("E",SHIN_L1,'🎓 早期選考ライン','#2F66A8')+line("M",SHIN_L2,'📋 本選考ライン','#1f7a4d')+
+   '<div class="row" style="gap:12px;flex-wrap:wrap"><b style="flex:0 0 92px;color:var(--ink);font-size:12.5px">合算・共通</b>'+act.map(function(dd){if(shinDual(dd.k))return '<span class="row" style="gap:4px"><span class="muted" style="font-size:11.5px">'+STAGE_NOUN[dd.k]+'</span><b id="psum_'+dd.k+'" style="min-width:34px;text-align:center">'+(numSet[dd.k]?vals[dd.k]:"–")+'</b><span class="muted">名</span></span>';return '<span class="row" style="gap:4px"><span class="muted">'+STAGE_NOUN[dd.k]+'</span><input type="number" min="0" id="pv_'+dd.k+'" value="'+(numSet[dd.k]?vals[dd.k]:"")+'" style="width:64px;height:32px;text-align:center;font-weight:bold;font-size:14px"><span class="muted">名</span></span>';}).join("")+(cfg.doc?'<span class="row" style="gap:5px"><span class="muted" style="color:var(--warn)">うち書類不合格（自動）</span><b id="prepDocfail" style="color:var(--warn)">–</b><span class="muted">名</span></span>':'')+'</div>';
+  bindLineInputs("pv",act);
+  act.forEach(function(dd){if(shinDual(dd.k))return;var el=document.getElementById("pv_"+dd.k);if(el)el.oninput=function(){numSet[dd.k]=String(this.value).trim()!=="";vals[dd.k]=+this.value||0;var s=document.getElementById("v_"+dd.k);if(s)s.value=this.value;recompute();};});
+  return;
+ }
  host.innerHTML='<div class="row" style="gap:16px;flex-wrap:wrap">'+act.map(function(dd){return '<span class="row" style="gap:5px"><span class="muted">'+STAGE_NOUN[dd.k]+'</span><input type="number" min="0" id="pv_'+dd.k+'" value="'+(numSet[dd.k]?vals[dd.k]:"")+'" style="width:74px;height:34px;text-align:center;font-weight:bold;font-size:15px"><span class="muted">名</span></span>';}).join("")+(cfg.doc?'<span class="row" style="gap:5px"><span class="muted" style="color:var(--warn)">うち書類不合格（自動）</span><b id="prepDocfail" style="color:var(--warn)">–</b><span class="muted">名</span></span>':'')+'</div>';
  act.forEach(function(dd){var el=document.getElementById("pv_"+dd.k);if(el)el.oninput=function(){numSet[dd.k]=String(this.value).trim()!=="";vals[dd.k]=+this.value||0;var s=document.getElementById("v_"+dd.k);if(s)s.value=this.value;recompute();};});}
 
@@ -959,7 +1020,9 @@ function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92
   var lp=pt(i,R+17),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");
   s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12.5"><tspan fill="#3a4a53">'+esc(cats[i].name)+'</tspan><tspan fill="'+col+'" font-weight="bold"> '+esc(cats[i].score)+'</tspan></text>';}
  return s+'</svg>';}
-function autoFillFunnel(){var act=activeDefs(),ap=vals.apply||0;if(!ap){alert("先に「応募数」を入力してください。");return;}numSet.apply=true;for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,bn=benchOf(a,b);vals[b]=Math.round((vals[a]||0)*bn/100);numSet[b]=true;}renderSurvey();renderPrepNumbers();recompute();}
+function autoFillFunnel(){var act=activeDefs(),ap=vals.apply||0;if(!ap){alert("先に「"+STAGE_NOUN.apply+"数」を入力してください。");return;}numSet.apply=true;for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,bn=benchOf(a,b);vals[b]=Math.round((vals[a]||0)*bn/100);numSet[b]=true;}
+ if(isShin()){act.forEach(function(dd){if(!shinDual(dd.k))return;valsM[dd.k]=vals[dd.k]||0;valsE[dd.k]=0;lineTouched[dd.k+"M"]=true;lineTouched[dd.k+"E"]=false;});}
+ renderSurvey();renderPrepNumbers();recompute();}
 function renderMrevCats(){var h=document.getElementById("mrevCats");if(!h)return;h.innerHTML=mrev.cats.map(function(c,i){return '<label class="mrevcat"><span>'+esc(c.name)+'</span><input type="number" min="0" max="5" step="0.1" data-i="'+i+'" value="'+(c.score||"")+'" placeholder="–" oninput="mrevCatIn(this)"><span class="mrevu">/5</span></label>';}).join("");}
 function mrevCatIn(el){var i=+el.getAttribute("data-i");if(mrev.cats[i])mrev.cats[i].score=String(el.value).trim();mrevApply();}
 function mrevRead(){var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():"";};mrev.source=g("mrev_source");mrev.rating=g("mrev_rating");mrev.reviewCount=g("mrev_count");mrev.recommend=g("mrev_rec");mrev.goodQuote=g("mrev_good");mrev.badQuote=g("mrev_bad");mrev.jobNote=g("mrev_jobnote");}
@@ -1109,13 +1172,13 @@ function recompute(){
   var pc=ca>0?Math.round(cbn/ca*100):0,g=document.getElementById("gate_"+b);
   if(g)g.innerHTML=(ca>0?'<span style="color:'+gc(pc,bn)+'">前段 '+pc+'%</span>':'<span class="muted">前段 –</span>')+'<br><span class="muted">目安'+bn+'%</span>';
  }
- var _ap=vals.apply||0,_dc=cfg.doc?(vals.doc||0):_ap,_ut0=cfg.doc?Math.max(0,Math.min(_ap-_dc,vals.untouched||0)):0,_dfv=(cfg.doc&&_ap>0)?String(Math.max(0,_ap-_dc-_ut0)):"–",_dfd=document.getElementById("docfailDisp");if(_dfd)_dfd.textContent=_dfv;var _pdf=document.getElementById("prepDocfail");if(_pdf)_pdf.textContent=_dfv;
+ var _ap=vals.apply||0,_pd=isShin()?(vals.attend||0):_ap,_dc=cfg.doc?(vals.doc||0):_pd,_ut0=cfg.doc?Math.max(0,Math.min(_pd-_dc,vals.untouched||0)):0,_dfv=(cfg.doc&&_pd>0)?String(Math.max(0,_pd-_dc-_ut0)):"–",_dfd=document.getElementById("docfailDisp");if(_dfd)_dfd.textContent=_dfv;var _pdf=document.getElementById("prepDocfail");if(_pdf)_pdf.textContent=_dfv;
  var allFilled=act.every(function(d){return numFilled(d.k);});
  if(!allFilled){blankOutputs();return;}
- var apply=vals.apply||0,docOn=cfg.doc,docC=docOn?(vals.doc||0):apply,hv=vals.hireval||0;
- var fmk=cfg.casual?"casual":"i1",fmC=vals[fmk]||0;
- var untouched=docOn?Math.max(0,Math.min(apply-docC,vals.untouched||0)):0;
- var fail=docOn?Math.max(0,(apply-docC)-untouched):0;
+ var apply=vals.apply||0,docOn=cfg.doc,preDoc=isShin()?(vals.attend||0):apply,docC=docOn?(vals.doc||0):preDoc,hv=vals.hireval||0;
+ var fmk=(cfg.casual&&!isShin())?"casual":"i1",fmC=vals[fmk]||0;
+ var untouched=docOn?Math.max(0,Math.min(preDoc-docC,vals.untouched||0)):0;
+ var fail=docOn?Math.max(0,(preDoc-docC)-untouched):0;
  var drop=Math.max(0,docC-fmC);
  var untR=apply>0?Math.round(untouched/apply*100):0,failR=apply>0?Math.round(fail/apply*100):0,dropR=apply>0?Math.round(drop/apply*100):0;
  var lk=document.getElementById("leaks");
@@ -1136,8 +1199,8 @@ function recompute(){
  var mobFill=(reqApplyE>0)?Math.min(100,Math.round(apply/reqApplyE*100)):null;
  var sc=[];
  /* ①認知される＝母集団の量（目標達成に必要な応募数への充足度）。目標未設定時のみ応募→次段の率で代替 */
- sc[0]=(mobFill!=null)?mobFill:(docOn?seg(apply>0?docC/apply:0,b_ad):seg(apply>0?fmC/apply:0,b_am));
- sc[1]=seg(docC>0?fmC/docC:0,b_dm);
+ sc[0]=(mobFill!=null)?mobFill:(isShin()?seg(apply>0?preDoc/apply:0,(bm.aa||55)/100):(docOn?seg(apply>0?docC/apply:0,b_ad):seg(apply>0?fmC/apply:0,b_am)));
+ sc[1]=seg(docC>0?fmC/docC:0,(docOn?b_dm:(isShin()?(bm.am||25)/100:b_dm)));
  sc[2]=seg(fmC>0?offerC/fmC:0,expProc);
  sc[3]=seg(offerC>0?acceptC/offerC:0,b_oa);
  /* ④決断を促す＝クロージングツール（本人・家族の意思決定後押し）が無ければ後押しの仕組み欠如として上限を抑える */
@@ -1246,8 +1309,11 @@ function recompute(){
  var egv=(total!=null)?total:ov,eg=grade(egv),moneyS=(hv>0&&impHi>0)?('　＝ 約'+yen(impLo*hv)+'〜'+yen(impHi*hv)+'の採用価値'):'';
  var qxqLine=(quant!=null)?('<div class="execgrade" style="font-size:12px;color:#5a6b75;margin-top:-4px">＝ 選考の質（歩留まり）'+ov+'点（'+grade(ov)[0]+'） × 目標達成（量）'+quant+'%（'+grade(quant)[0]+'）</div>'):'';
  var impLine=(targetUp||volDriven)?('母集団を必要水準（応募 約'+reqApply+'名）へ増やせば 目標 '+(vals.target||0)+'名 の達成が視野に'):('この一手で 承諾 +'+impLo+'〜+'+impHi+'名'+moneyS);
- var setRate=(apply>0?Math.round(fmC/apply*100):0),setBench=(docOn?Math.round(bm.ad*bm.dm/100):(bm.am||50)),setCol=egColor(setRate>=setBench?80:35);
- var setBanner='<div class="execset" style="border-color:'+setCol+'"><div class="execsetl">応募 → 面接 設定率</div><div class="execsetv" style="color:'+setCol+'">'+setRate+'<small>%</small></div><div class="execsetm">応募 '+apply+'名 → 面接 '+fmC+'名　／　目安 '+setBench+'%</div></div>';
+ var setRate=(apply>0?Math.round(fmC/apply*100):0);
+ var setBench=isShin()?Math.max(1,Math.round((bm.aa||55)/100*(docOn?(bm.ad*bm.dm/10000):((bm.am||25)/100))*100)):(docOn?Math.round(bm.ad*bm.dm/100):(bm.am||50));
+ var setCol=egColor(setRate>=setBench?80:35);
+ var setLblA=isShin()?'エントリー・予約':'応募',setLblB=isShin()?'一次選考':'面接';
+ var setBanner='<div class="execset" style="border-color:'+setCol+'"><div class="execsetl">'+setLblA+' → '+setLblB+' 設定率</div><div class="execsetv" style="color:'+setCol+'">'+setRate+'<small>%</small></div><div class="execsetm">'+setLblA+' '+apply+'名 → '+setLblB+' '+fmC+'名　／　目安 '+setBench+'%</div></div>';
  var ctx='';
  if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>目標に必要な応募 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">ターゲット設定と求人の魅力訴求が弱い可能性</span></li>';
  if(noSite)ctx+='<li><b>採用サイト：</b><span style="color:#ffcf6b">無し・不十分</span> → 採用サイト制作（TRACE）を優先施策に</li>';
@@ -1257,7 +1323,7 @@ function recompute(){
  var es=document.getElementById("execSummary");
  if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="exechead">'+headline+'</div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+setBanner+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+execLoss+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(apply>0?Math.round(docC/apply*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(apply>0?Math.round(fmC/apply*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench,gapN:gapN,gapLoss:gapLoss,acc:(vals.accept||0),tdiff:tdiff,trarity:trarity,tHard:tHard,tA:(tA||null),tmust:(treq.must||""),twant:(treq.want||""),facts:facts.slice(0,4),gap:(gpA||null),nextM:((dA&&dA.nextMeeting)||null)};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(preDoc>0?Math.round(docC/preDoc*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(preDoc>0?Math.round(fmC/preDoc*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench,gapN:gapN,gapLoss:gapLoss,acc:(vals.accept||0),tdiff:tdiff,trarity:trarity,tHard:tHard,tA:(tA||null),tmust:(treq.must||""),twant:(treq.want||""),facts:facts.slice(0,4),gap:(gpA||null),nextM:((dA&&dA.nextMeeting)||null)};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -1289,6 +1355,7 @@ function copyPrompt(){
  var rs=getUrls("rivalUrls"),ru=rs.length?rs.map(function(x){return "・"+x.type+"："+x.url;}).join("\n"):"（競合URLなし）";
  var hearing=[0,1,2,3,4].map(function(i){var m=stepMemoStr(i);return m?("・"+names[i]+"："+m):"";}).filter(Boolean).join("\n")||"（ヒアリング未入力）";
  var nums=activeDefs().map(function(dd){return STAGE_NOUN[dd.k]+" "+(vals[dd.k]||0)+"名";}).join(" / ")||"（未入力）";
+ if(isShin()){var lineStr=function(o,map){return activeDefs().filter(function(dd){return shinDual(dd.k);}).map(function(dd){return (map[dd.k]||STAGE_NOUN[dd.k])+" "+(o[dd.k]||0)+"名";}).join(" / ");};nums+="（合算）｜早期選考ライン: "+lineStr(valsE,SHIN_L1)+"｜本選考ライン: "+lineStr(valsM,SHIN_L2);}
  var flags="採用サイト:"+(vals.nosite?"なし":"あり")+"／採用ピッチ資料:"+(vals.nopitch?"なし":"あり")+"／クロージングツール:"+(vals.noclosing?"なし":"あり");
  var shinNote=isShin()?"【新卒採用の観点＝最優先で適用】本件は新卒採用です。学生（就活生）目線で分析してください。参照すべき情報源：採用サイトの新卒コンテンツ・マイナビ/リクナビ等ナビ媒体の掲載・ONE CAREER・みん就・OpenWork等。口コミは「在職社員の評判（全社）」と「就活生のクチコミ（選考体験・説明会の印象）」を区別して扱ってください。ターゲット難易度は新卒市場（対象学生層・専攻・地域・売り手市場度）で評価し、対象職種は募集コース（総合職等）として扱って構いません。内定辞退の市場平均は約55%（学生は複数内定が前提）を目安に、④決断（内定者フォロー・保護者対応）の重要度を高く評価してください。\n":"";
  var p="以下の企業の"+(isShin()?"新卒採用":"キャリア（中途）採用")+"を、WEB上の公開情報から分析してください。\n採用区分: "+(isShin()?"新卒採用":"キャリア採用（中途）")+"\n企業名: "+c+"\n対象職種: "+(document.getElementById("jobtitle").value||"（未入力）")+"\n対象期間: "+(periodStr()||"（未入力）")+"\n自社の対象URL（種別つき）:\n"+u+"\n競合の対象URL（比較用・種別つき）:\n"+ru+"\n\n採用担当者へのヒアリング（＝事実情報。最重要の根拠として扱うこと）:\n"+hearing+"\n選考ファネル実数: "+nums+"\n重点施策の有無: "+flags+"\nターゲット要件（求める人物像）:\n  MUST（必須）: "+(treq.must||"（未入力）")+"\n  WANT（歓迎）: "+(treq.want||"（未入力）")+"\n\nこの結果は営業の初回アポで『事前調査のフィードバック→アイスブレイク→ヒアリングの前振り』に使います。\n"+shinNote+"\n【厳守・ハルシネーション禁止】各 finding/summary/insight は、指定URLを実際に開いて確認できた事実のみを根拠にしてください（reviews＝口コミは後述【口コミの取得】の手順で、企業名から公開クチコミページを検索して取得して構いません）。URLにアクセスできない、日本法人・対象職種の求人や採用サイトが見当たらない・存在しない場合は、推測で内容を埋めず finding を空文字にするか『公開情報では確認できず（当日ヒアリングで確認）』と明記してください。実在しない採用サイト・求人・実績・数値を創作してはいけません。企業名から一般論を書かず、URLに実際にある情報だけを書き、推測は『〜と推測されます』と明示してください。\n【表示ルール】finding（WEB所見）とinsight（気づき）は、顧客と同席の画面にそのまま表示されます。事実ベースの丁寧な日本語で記述し、WEBの公開情報だけでは判断できない項目（特に④決断・⑤活躍）はfindingを空文字にしてください（『当日ヒアリング』等の内部メモ表現は書かない）。askは営業担当者だけが見るメモ（顧客には非表示）なので、当日の質問文にしてください。【口コミの取得】reviewsは口コミサイトの内容に基づき、rating・categories（5項目）・quotes（良い/気になる各1つ）・recommend・reviewCountを可能な限り必ず埋めてください（サイトに数値が無い場合も、本文の傾向から5点満点で推定して構いません）。指定された口コミサイトのURLがログイン必須・採用企業向け管理画面（例：recruiting.vorkers.com などの分析画面）で開けない場合は、企業名『"+c+"』で"+(isShin()?"OpenWork・ONE CAREER・みん就・エンライトハウス・Googleクチコミ":"OpenWork・エンライトハウス・Lighthouse・転職会議・Googleクチコミ")+"等の公開クチコミページをWEB検索して開き、その公開情報から reviews を埋めてください（口コミは実在する公開情報のため、企業名からの検索・参照は積極的に行って構いません。ただし公開ページで実際に確認できた事実のみを使い、確認できない項目は空文字に）。source には実際に参照したサイト名（可能ならURL）を記載してください。【口コミは職種横断＝全社評価であることの厳守】OpenWork等の口コミは原則として全社（全職種）の評価であり、対象職種『"+(document.getElementById("jobtitle").value||"対象職種")+"』固有の実態とは限りません。対象職種・関連部門に言及した口コミがあれば優先的に quotes に採用し、全社の傾向と職種固有の情報を必ず区別してください。全社評価を対象職種の評価であるかのように断定してはいけません。reviews.jobScope にその別と注記を記載してください。quotes（口コミ抜粋）は、投稿者の職種が対象職種と同一または近接（同じ職種ファミリー）の口コミだけを採用し、各 quote の job に投稿者の職種を記載してください。対象職種に関連する口コミが確認できない場合は quotes を空配列にし、jobScope に『対象職種の口コミは確認できず（全社傾向のみ）』と明記してください。異職種の口コミを対象職種の声として引用してはいけません（categories・rating は全社参考値として従来どおり）。\n【ターゲットの採用難易度分析】上記『ターゲット要件（MUST/WANT）』と対象職種『"+(document.getElementById("jobtitle").value||"対象職種")+"』・対象の"+(isShin()?"新卒採用市場":"転職市場")+"をふまえ、この人物像を採用する難易度と市場での希少性を評価して targetAnalysis を埋めてください。difficulty・rarity は必ず1〜5の整数（5が最も困難／希少）。marketContext＝需給・競合の多さ、requiredMove＝難易度に応じた採り方（チャネル/スカウト/条件/訴求の具体）、mustReview＝MUST要件のうち緩和・見直しで母集団を広げられる点、を各1文で。要件が未入力の場合は対象職種の一般的な市場感で推定して構いません。\n各stepのissue（課題）/cause（原因）/solution（解決策）は、上記の『選考ファネル実数』と『採用担当者ヒアリング（＝事実情報）』を最優先の根拠として、その段階に即し簡潔（各1文）に記述してください。ヒアリングが空の段階は数値と一般的知見で補ってください。\n【主観×客観ギャップ分析＝商談の肝】gapAnalysis では、採用担当者ヒアリング（主観の実感）と選考ファネル実数・WEB所見（客観データ）を突き合わせてください。agree＝実感とデータが一致する点（冒頭で共感を得る確認）、blind＝実感とデータがズレている盲点（『◯◯が課題と感じておられますが、データ上は実は△△』の形で数値根拠つき）、surprise＝担当者が気づいていない意外な事実（市場水準との比較・逆算値など数値つき）。当たり前の確認ではなく、次の提案につながる発見を優先してください。nextMeeting は次回商談への提案骨子3点（各に期待効果を数値で）と、次回アポを打診する一言（hook）です。\n【施策の設計指針（proposals）＝ヒアリング起点で必ず作成】proposals では、採用サイト(site)・採用ピッチ資料(pitch)・クロージングブック(closing)のそれぞれについて次を出力してください。why＝なぜこの企業に必要か3点。必ず『採用担当者ヒアリング（事実情報）』と選考ファネル実数を根拠に引用し（例：『紹介経由が中心で母集団が広がらないとのことのため…』）、この企業にとっての重要度順に並べ替えること（一般論の定型順ではなく、ヒアリング内容が変わればwhyの順番も変わるのが正）。contents＝入れるべきコンテンツ・工夫3〜5点。ヒアリング・口コミ・競合比較・ターゲット要件（MUST/WANT）を根拠に、誰の声（社員・職種）を載せるか、どの数字・実績を出すか、候補者・家族のどの不安をどう解消するかまで具体的に踏み込むこと。ヒアリングが薄い場合は対象職種・市場の一般知見で補い、推測とわかる表現にしてください。\n\n【重要】出力は下記JSONのみ。前後に説明文やコードブロック記号は付けないこと。\n{\n  \"icebreak\": \"アポ冒頭で使える一言（事前に拝見した上での具体的な称賛＋関心。1文）\",\n  \"summary\": \"全体所感を2〜3文。良い点→伸びしろの順で前向きに。\",\n  \"reviews\": {\n    \"rating\": \"口コミサイトの総合評価（5点満点。例:3.6。不明なら空文字）\",\n    \"reviewCount\": \"口コミ件数（分かれば数値、不明なら空文字）\",\n    \"recommend\": \"満足・推奨の割合%（例:68。不明なら空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"5点満点。不明なら空文字\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ],\n    \"summary\": \"口コミ全体の傾向を1〜2文で\",\n    \"good\": [\"良い評判・強み\", \"\"],\n    \"bad\": [\"気になる評判・懸念点\", \"\"],\n    \"quotes\": [\n      {\"type\": \"good\", \"text\": \"代表的な良い口コミの抜粋・要約（1文。対象職種と同一/近接の投稿者のみ）\", \"job\": \"投稿者の職種（例：営業系）\"},\n      {\"type\": \"bad\", \"text\": \"代表的な気になる口コミの抜粋・要約（1文。対象職種と同一/近接の投稿者のみ）\", \"job\": \"\"}\n    ],\n    \"source\": \"参照した口コミサイト名（例:OpenWork / エンライトハウス / Lighthouse）\",\n    \"jobScope\": \"この口コミが『全社（職種横断）の傾向』か『対象職種・部門に関するもの』かの別＋対象職種について分かった点。無ければ『全社評価。対象職種固有の実態はヒアリングで要確認』と記載\"\n  },\n  \"targetAnalysis\": {\n    \"difficulty\": \"採用難易度 1〜5の整数（5が最も困難）\",\n    \"difficultyLabel\": \"難易度の一言（例：難しい）\",\n    \"rarity\": \"市場での希少性 1〜5の整数（5が最も希少）\",\n    \"rarityLabel\": \"希少性の一言（例：やや希少）\",\n    \"summary\": \"このターゲットの採用難易度・希少性の総評（1〜2文）\",\n    \"marketContext\": \"市場の需給・競合の多さ（1文）\",\n    \"requiredMove\": \"難易度に応じた採り方＝チャネル/スカウト/条件/訴求の具体（1文）\",\n    \"mustReview\": \"MUST要件のうち緩和・見直しで母集団を広げられる点（1文）\"\n  },\n  \"proposals\": {\n    \"site\": {\n      \"why\": [\"採用サイトがこの企業に必要な理由①（ヒアリング事実を根拠に。最重要）\", \"理由②\", \"理由③\"],\n      \"contents\": [\"入れるべきコンテンツ・工夫①（具体的に）\", \"②\", \"③\", \"④\", \"⑤\"]\n    },\n    \"pitch\": {\n      \"why\": [\"採用ピッチ資料が必要な理由（重要度順3点）\", \"\", \"\"],\n      \"contents\": [\"入れるべきコンテンツ・工夫（3〜5点）\", \"\", \"\"]\n    },\n    \"closing\": {\n      \"why\": [\"クロージングブック（本人・家族向け）が必要な理由（重要度順3点）\", \"\", \"\"],\n      \"contents\": [\"入れるべきコンテンツ・工夫（3〜5点）\", \"\", \"\"]\n    }\n  },\n  \"steps\": [\n    {\"step\": \"①認知される\", \"finding\": \"WEB上の所見（事実）\", \"insight\": \"気づき・仮説\", \"ask\": \"初回アポで確認したい数値／ヒアリングへの前振りトーク\", \"issue\": \"この段階の課題（選考ファネル実数＋採用担当者ヒアリング事実に基づく・1文）\", \"cause\": \"原因（1文）\", \"solution\": \"具体的な解決策（1文）\"},\n    {\"step\": \"②惹きつける\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\", \"issue\": \"\", \"cause\": \"\", \"solution\": \"\"},\n    {\"step\": \"③信頼を築く\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\", \"issue\": \"\", \"cause\": \"\", \"solution\": \"\"},\n    {\"step\": \"④決断を促す\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\", \"issue\": \"\", \"cause\": \"\", \"solution\": \"\"},\n    {\"step\": \"⑤活躍を支える\", \"finding\": \"\", \"insight\": \"\", \"ask\": \"\", \"issue\": \"\", \"cause\": \"\", \"solution\": \"\"}\n  ],\n  \"focus\": \"最も伸びしろがありそうなステップ名（例：②惹きつける）\",\n  \"bridge\": \"ヒアリングへ自然につなぐ一言（例：では実際の応募〜入社の数字を一緒に見ながら…）\",\n  \"gapAnalysis\": {\n    \"agree\": [\"採用担当者の実感とデータが一致する点（共感の確認・1〜2個）\"],\n    \"blind\": [\"担当者の認識とデータがズレている盲点（『実は◯◯』を数値根拠つきで・1〜2個）\"],\n    \"surprise\": [\"担当者が気づいていない、データが示す意外な事実（数値つき・1〜2個）\"]\n  },\n  \"nextMeeting\": {\n    \"agenda\": [\"次回提案の骨子①（施策＋期待効果を数値で）\", \"骨子②\", \"骨子③\"],\n    \"hook\": \"次回アポを打診する一言\"\n  },\n  \"competitor\": {\n    \"name\": \"競合の企業名（競合URLがある場合のみ。無ければ空文字）\",\n    \"rating\": \"競合の口コミ総合評価（5点満点。無ければ空文字）\",\n    \"categories\": [\n      {\"name\": \"働きがい・成長\", \"score\": \"\"},\n      {\"name\": \"風通し・人間関係\", \"score\": \"\"},\n      {\"name\": \"待遇・報酬\", \"score\": \"\"},\n      {\"name\": \"ワークライフバランス\", \"score\": \"\"},\n      {\"name\": \"経営・将来性\", \"score\": \"\"}\n    ]\n  },\n  \"compare\": [\n    {\"axis\": \"採用サイトの充実度\", \"self\": \"5点満点\", \"rival\": \"5点満点\", \"note\": \"一言\"},\n    {\"axis\": \"求人の訴求力\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"募集条件（待遇・給与の明示）\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"口コミ評価\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"情報量・発信\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"},\n    {\"axis\": \"第一印象・選ばれやすさ\", \"self\": \"\", \"rival\": \"\", \"note\": \"\"}\n  ]\n}\n【競合について】競合URLがある場合のみ competitor と compare を埋めてください（competitor.categories は自社と同じ5項目名で5点満点、compare の self/rival も5点満点）。compareでは競合の『募集条件・求人原稿・採用サイトのコンテンツ充実度・打ち出し』を実際に比較評価し、御社が競合に劣る項目（self<rival）は note に『御社が劣る：具体的な差』を必ず明記してください。競合URLが無い場合は competitor.name/rating を空、competitor.categories の score を空、compare の self/rival を空にしてください。\nJSON以外は出力しないこと。";
@@ -1302,7 +1369,7 @@ function updateResultGate(){var g=document.getElementById("resultGate");if(!g)re
 function scrollToNum(k){var meet=/mode-meet/.test(document.body.className);var e=document.getElementById((meet?"v_":"pv_")+k)||document.getElementById("v_"+k)||document.getElementById("pv_"+k);if(e){if(e.scrollIntoView)e.scrollIntoView({behavior:"smooth",block:"center"});try{e.focus();}catch(_){}}}
 function revealResult(){showResult=true;document.body.classList.add("show-result");renderA3();updateResultGate();var r=document.getElementById("a3report");if(r&&r.scrollIntoView)r.scrollIntoView({behavior:"smooth",block:"start"});}
 function setMode(m){document.body.className=document.body.className.replace(/mode-\w+/g,"").trim()+" mode-"+m;document.body.classList.remove("show-result");showResult=false;document.getElementById("mLite").classList.toggle("act",m==="lite");document.getElementById("mPrep").classList.toggle("act",m==="prep");document.getElementById("mMeet").classList.toggle("act",m==="meet");if(m==="lite"){renderLite();}else{updateMeetHead();buildStepper();renderMeetAi();recompute();}window.scrollTo(0,0);}
-function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,rtype:rtype,mrev:mrev,mrev2:mrev2,treq:treq,numSet:numSet,actions:steps.map(function(s){return s.on.slice();})};}
+function state(){return{company:document.getElementById("company").value,job:document.getElementById("jobtitle").value,periodFrom:document.getElementById("periodFrom").value,periodTo:document.getElementById("periodTo").value,urls:getUrls("urls"),rivalUrls:getUrls("rivalUrls"),aiNote:document.getElementById("aiNote").value,hpnotes:hpnotes,cfg:cfg,vals:vals,bm:bm,preset:ps.value,rtype:rtype,valsE:valsE,valsM:valsM,lineTouched:lineTouched,mrev:mrev,mrev2:mrev2,treq:treq,numSet:numSet,actions:steps.map(function(s){return s.on.slice();})};}
 function store(){try{return JSON.parse(localStorage.getItem("fanshindan")||"{}");}catch(e){return{};}}
 function saveCase(){var c=document.getElementById("company").value.trim();if(!c){alert("会社名を入力してください");return;}var all=store();if(all[c]&&!confirm("「"+c+"」は既に保存されています。上書きしますか？"))return;var s=state();s.savedAt=new Date().toLocaleString("ja-JP");all[c]=s;localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+c+"」を保存しました（"+s.savedAt+"）");}
 function deleteCase(){var k=document.getElementById("loadSel").value;if(!k){alert("削除する診断をリストから選んでください");return;}if(!confirm("「"+k+"」の保存データを削除しますか？（元に戻せません）"))return;var all=store();delete all[k];localStorage.setItem("fanshindan",JSON.stringify(all));refreshList();alert("「"+k+"」を削除しました");}
@@ -1312,7 +1379,7 @@ function copyJson(){var t=document.getElementById("jsonText");if(!t)return;t.foc
 function downloadJson(){var t=document.getElementById("jsonText"),o=document.getElementById("jsonOverlay");if(!t)return;var fn=o.getAttribute("data-fn")||"採用診断_診断.json",m=document.getElementById("jsonMsg");try{var blob=new Blob([t.value],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);if(m)m.textContent="保存しました";return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},1500);if(m)m.textContent="ダウンロードしました";}catch(e){if(m)m.textContent="保存に失敗："+(e&&e.message?e.message:e);}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var txt=String(rd.result||"").replace(/^﻿/,"").trim();var st;try{st=JSON.parse(txt);}catch(e){alert("JSONの読み込みに失敗しました。\nこのファイルはJSON形式ではないか、壊れています。\n\n詳細："+e.message+"\n先頭："+txt.slice(0,50));ev.target.value="";return;}try{applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e2){alert("データの適用中にエラーが発生しました。\n詳細："+e2.message);}ev.target.value="";};rd.onerror=function(){alert("ファイルの読み込みに失敗しました（アクセス権をご確認ください）。");};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true},st.cfg);vals=Object.assign({},st.vals);numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();mrev2=Object.assign(defaultMrev2(),st.mrev2||{});if(st.mrev2&&st.mrev2.cats)mrev2.cats=defaultMrev2().cats.map(function(c,i){return{name:c.name,score:(st.mrev2.cats[i]&&st.mrev2.cats[i].score)||""};});fillMrev2Inputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}rtype=(st.rtype==='shinsotsu')?'shinsotsu':'career';var _rb1=document.getElementById('rtCareer'),_rb2=document.getElementById('rtShin');if(_rb1)_rb1.classList.toggle('act',rtype!=='shinsotsu');if(_rb2)_rb2.classList.toggle('act',rtype==='shinsotsu');applyRtypeLabels();renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=v;renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true,i3:false},st.cfg);vals=Object.assign({},st.vals);valsE=Object.assign({},st.valsE||{});valsM=Object.assign({},st.valsM||{});lineTouched=Object.assign({},st.lineTouched||{});numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();mrev2=Object.assign(defaultMrev2(),st.mrev2||{});if(st.mrev2&&st.mrev2.cats)mrev2.cats=defaultMrev2().cats.map(function(c,i){return{name:c.name,score:(st.mrev2.cats[i]&&st.mrev2.cats[i].score)||""};});fillMrev2Inputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}rtype=(st.rtype==='shinsotsu')?'shinsotsu':'career';var _rb1=document.getElementById('rtCareer'),_rb2=document.getElementById('rtShin');if(_rb1)_rb1.classList.toggle('act',rtype!=='shinsotsu');if(_rb2)_rb2.classList.toggle('act',rtype==='shinsotsu');applyRtypeLabels();renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=v;renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
@@ -1338,7 +1405,7 @@ function radarScoreSVG(sc){var n=5,cx=230,cy=162,R=112,max=100;
  s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.20)" stroke="#00B0F0" stroke-width="2.5"/>';
  for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max),col=cssv(lv(sc[i])[1]);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';var lp=pt(i,R+18),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="13"><tspan fill="#3a4a53">'+esc(names[i])+' </tspan><tspan fill="'+col+'" font-weight="bold">'+sc[i]+'</tspan></text>';}
  return s+'</svg>';}
-function reportFunnel(){var act=activeDefs(),rows="";for(var i=0;i<act.length;i++){var k=act[i].k,cnt=vals[k]||0,pass="";if(i>0){var a=act[i-1].k,bn=benchOf(a,k),pc=(vals[a]||0)>0?Math.round(cnt/(vals[a]||0)*100):0;pass='<span style="color:'+cssv(gc(pc,bn))+'">'+pc+'%</span> <span style="color:#888">/ 目安'+bn+'%</span>';}rows+='<tr><td>'+STAGE_TITLE[k]+'</td><td style="text-align:right">'+cnt+'名</td><td style="text-align:right">'+pass+'</td></tr>';}return '<table class="rtbl"><tr><th>選考段階</th><th style="text-align:right">人数</th><th style="text-align:right">前段からの通過率</th></tr>'+rows+'</table>';}
+function reportFunnel(){var act=activeDefs(),rows="";for(var i=0;i<act.length;i++){var k=act[i].k,cnt=vals[k]||0,pass="";if(i>0){var a=act[i-1].k,bn=benchOf(a,k),pc=(vals[a]||0)>0?Math.round(cnt/(vals[a]||0)*100):0;pass='<span style="color:'+cssv(gc(pc,bn))+'">'+pc+'%</span> <span style="color:#888">/ 目安'+bn+'%</span>';}var bd=(isShin()&&k!=="offer"&&k!=="accept")?' <small style="color:#888">(早'+(valsE[k]||0)+'+本'+(valsM[k]||0)+')</small>':'';rows+='<tr><td>'+STAGE_TITLE[k]+'</td><td style="text-align:right">'+cnt+'名'+bd+'</td><td style="text-align:right">'+pass+'</td></tr>';}return '<table class="rtbl"><tr><th>選考段階</th><th style="text-align:right">人数'+(isShin()?' <small style="font-weight:normal">(早期+本選考)</small>':'')+'</th><th style="text-align:right">前段からの通過率</th></tr>'+rows+'</table>';}
 function reportIssues(){var L=['最重要ボトルネック：<b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）'];if(R.failR>=40)L.push('ターゲット外の応募が '+R.failR+'%（母集団の質に課題）');if(R.dropR>=25)L.push('応募後の離脱が '+R.dropR+'%（WEBの競合比較で面接前に格下げの可能性）');if(R.accRate>0){var dr=Math.round((1-R.accRate)*100);L.push('内定辞退率 約'+dr+'%（'+recruitTitle()+'の市場平均 約'+declAvg()+'%）');}return '<ul class="rul">'+L.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul>';}
 function reportMoves(){var weak=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);if(!weak.length)return '<p>各段階とも良好です。定着・リファラルでファン化を強化しましょう。</p>';return weak.map(function(o){var p=pbStep(o.i)[0];return '<div class="rmove"><div class="rmt" style="color:'+STC[o.i]+'">'+steps[o.i].name+'（スコア '+o.sc+'）</div><div><b>課題：</b>'+esc(p.issue)+'</div><div style="margin-top:2px"><b>解決策：</b>'+esc(p.solve)+'</div><div class="rcta">→ 具体策：弊社「'+esc(p.svc)+'」を選考フローに組み込むことを推奨します。</div></div>';}).join("");}
 function renderReport(){var rep=document.getElementById("report");if(!rep)return;
@@ -1420,10 +1487,11 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var atNote=atGood?'会社が会いたい候補者が辞退せず面接に参加＝志望度・優先度が保てています。この強みを維持しましょう。':'書類通過（会社が会いたい）候補者が面接前に辞退＝WEB上での他社比較で自社の優先度が下がっている可能性。採用サイト・求人・口コミ等のWEB情報で志望度を引き上げる余地があります（②惹きつける）。';
  if(!atGood&&R.compInferior){var atLs=(d&&d.compare?d.compare:[]).filter(function(x){return x&&x.axis&&(parseFloat(x.rival)||0)>(parseFloat(x.self)||0);}).map(function(x){return x.axis;});if(atLs.length)atNote+=' 特に競合に劣る「'+atLs.join('・')+'」が比較検討で不利に働いています。';}
  var setCol2=cssv(gc(R.setRate,R.setBench));
- var setHead='<div class="a3setrate" style="border-color:'+setCol2+'"><div><div class="a3setl">応募からの面接設定率</div><div class="a3setmeta">応募 '+R.apply+'名 → 面接 '+R.fmC+'名 ／ 目安 '+R.setBench+'%</div></div><div class="a3setbig" style="color:'+setCol2+'">'+R.setRate+'<small>%</small></div></div>';
- var atiCard='<div class="a3card a3kpi"><h4>応募からの面接設定率と内訳（会社判断 × 候補者判断）</h4>'+setHead+'<div class="a3kpi2">';
+ var kLblA=isShin()?'エントリー・予約':'応募',kLblB=isShin()?'一次選考':'面接';
+ var setHead='<div class="a3setrate" style="border-color:'+setCol2+'"><div><div class="a3setl">'+kLblA+'からの'+kLblB+'設定率</div><div class="a3setmeta">'+kLblA+' '+R.apply+'名 → '+kLblB+' '+R.fmC+'名 ／ 目安 '+R.setBench+'%</div></div><div class="a3setbig" style="color:'+setCol2+'">'+R.setRate+'<small>%</small></div></div>';
+ var atiCard='<div class="a3card a3kpi"><h4>'+kLblA+'からの'+kLblB+'設定率と内訳（会社判断 × 候補者判断）</h4>'+setHead+'<div class="a3kpi2">';
  if(R.docOn){atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+dpCol+'"><span class="a3kpitag" style="background:#7a8791">会社判断</span><div class="a3kpil">書類選考 通過率</div><div class="a3kpibig" style="color:'+dpCol+'">'+R.docPassRate+'<small>%</small></div><div class="muted">目安 '+R.docPassBench+'% ／ 不合格 '+R.fail+'名（ターゲット外の見送り）</div></div>';}
- atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+atCol+'"><span class="a3kpitag" style="background:#0089c4">候補者判断</span><div class="a3kpil">'+(R.docOn?'書類通過→面接参加率':'応募→面接参加率')+'（志望度）</div><div class="a3kpibig" style="color:'+atCol+'">'+R.attendRate+'<small>%</small></div><div class="muted">目安 '+R.attendBench+'% ／ 辞退 '+R.drop+'名（候補者都合）</div></div>';
+ atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+atCol+'"><span class="a3kpitag" style="background:#0089c4">候補者判断</span><div class="a3kpil">'+(R.docOn?('書類通過→'+kLblB+'参加率'):(kLblA+'→'+kLblB+'参加率'))+'（志望度）</div><div class="a3kpibig" style="color:'+atCol+'">'+R.attendRate+'<small>%</small></div><div class="muted">目安 '+R.attendBench+'% ／ 辞退 '+R.drop+'名（候補者都合）</div></div>';
  atiCard+='</div><div class="a3kpinote"><b>候補者判断（志望度）：</b>'+esc(atNote)+'</div>'+(R.docOn?'<div class="a3kpinote2"><b>会社判断（絞り込み）：</b>書類不合格はターゲット外の見送り。多い場合はターゲット設定・訴求のずれ（①認知・②惹きつけ）で応募の質を高める余地。志望度とは切り分けて評価します。</div>':'')+'</div>';
  h+='<div class="a3col">'+atiCard+'<div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>'+
   leakCard+'</div>';
