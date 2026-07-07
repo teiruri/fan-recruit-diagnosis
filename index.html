@@ -749,7 +749,8 @@ body>*{display:none!important}
 <div id="jsonOverlay" class="no-print"></div>
 
 <script>
-var presets={"標準":{ad:40,dm:85,mm:60,mo:45,oa:50,am:34},"新卒採用":{aa:55,ad:35,dm:75,mm:55,mo:40,oa:45,am:25},"営業":{ad:35,dm:80,mm:55,mo:40,oa:45,am:28},"エンジニア／IT・Web":{ad:50,dm:88,mm:65,mo:50,oa:55,am:44},"施工管理／建設・不動産":{ad:45,dm:85,mm:60,mo:45,oa:50,am:38},"製造・技能":{ad:40,dm:85,mm:60,mo:50,oa:50,am:34},"医療・介護":{ad:45,dm:85,mm:65,mo:50,oa:55,am:38},"外食・小売・サービス":{ad:30,dm:80,mm:60,mo:45,oa:48,am:24},"物流・運輸":{ad:35,dm:82,mm:60,mo:50,oa:52,am:29},"事務・管理":{ad:25,dm:80,mm:60,mo:40,oa:55,am:20}};
+/* キャリア各業界の通過率＝ユーザー設定（選考通過率.xlsx 2026-07-06反映）。ad=書類通過率/cf=カジュアル面談実施率/dm=一次面接設定率/mm=一次面接通過率/mo=最終面接通過率/oa=内定承諾率/am=書類選考なし時の応募→一次(=ad×dm) */
+var presets={"標準":{ad:43,cf:63,dm:63,mm:66,mo:79,oa:52,am:27},"新卒採用":{aa:55,ad:35,cf:65,dm:75,mm:55,mo:40,oa:45,am:25},"営業（未経験）":{ad:30,cf:65,dm:60,mm:50,mo:85,oa:60,am:18},"エンジニア／IT・Web":{ad:35,cf:70,dm:65,mm:60,mo:80,oa:60,am:23},"施工管理／建設・不動産":{ad:35,cf:80,dm:65,mm:95,mo:95,oa:50,am:23},"製造・技能":{ad:50,cf:65,dm:65,mm:65,mo:75,oa:40,am:33},"医療・介護":{ad:40,cf:60,dm:60,mm:65,mo:80,oa:50,am:24},"外食・小売・サービス":{ad:70,cf:40,dm:60,mm:70,mo:85,oa:40,am:42},"物流・運輸":{ad:60,cf:45,dm:50,mm:70,mo:80,oa:40,am:30},"事務・管理":{ad:20,cf:80,dm:80,mm:55,mo:55,oa:75,am:16}};
 var bm=Object.assign({},presets["標準"]);
 var DEFS_CAREER=[{k:"apply",n:"応募",fix:1},{k:"doc",n:"書類通過",opt:1},{k:"casual",n:"カジュアル面談",opt:1},{k:"i1",n:"一次面接",fix:1},{k:"i2",n:"二次面接",opt:1},{k:"final",n:"最終面接",opt:1},{k:"offer",n:"内定",fix:1},{k:"accept",n:"承諾",fix:1}];
 var DEFS_SHIN=[{k:"apply",n:"エントリー・予約",fix:1},{k:"attend",n:"説明会・インターン参加",fix:1},{k:"doc",n:"ES・書類通過",opt:1},{k:"i1",n:"一次選考",fix:1},{k:"i2",n:"二次選考",fix:1},{k:"i3",n:"三次選考",opt:1},{k:"final",n:"最終選考",fix:1},{k:"offer",n:"内々定・内定",fix:1},{k:"accept",n:"内定承諾",fix:1}];
@@ -878,7 +879,7 @@ var playbook=[
  {step:4,issue:"紹介が生まれる仕組みがない",solve:"リファラル（社員紹介）を仕組み化する",svc:"TRAY/リファラル支援"}
 ];
 function pbStep(i){return playbook.filter(function(p){return p.step===i;});}
-function benchOf(a,b){ if(a==="apply")return b==="doc"?bm.ad:(b==="attend"?(bm.aa||55):(bm.am||50)); if(a==="attend")return b==="doc"?bm.ad:(bm.am||50); if(a==="doc")return bm.dm; if(a==="casual")return 80; if(a==="final")return bm.mo; if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?bm.mo:bm.mm; if(a==="offer")return bm.oa; return 50; }
+function benchOf(a,b){ if(a==="apply")return b==="doc"?bm.ad:(b==="attend"?(bm.aa||55):(bm.am||50)); if(a==="attend")return b==="doc"?bm.ad:(bm.am||50); if(a==="doc")return b==="casual"?(bm.cf||65):bm.dm; if(a==="casual")return bm.dm; if(a==="final")return bm.mo; if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?bm.mo:bm.mm; if(a==="offer")return bm.oa; return 50; }
 function gc(p,b){ if(p>=b)return "var(--ok)"; if(p>=b*0.85)return "var(--warn)"; return "var(--bad)"; }
 function lv(s){ if(s>=75)return["◎","var(--ok)"]; if(s>=60)return["○","var(--cyanD)"]; if(s>=40)return["△","var(--warn)"]; return["▲","var(--bad)"]; }
 function grade(s){ if(s>=75)return["S","良好"]; if(s>=60)return["A","標準"]; if(s>=40)return["B","要改善"]; return["C","要注力"]; }
@@ -937,7 +938,7 @@ function chartSVG(sc){
 /* ===== 準備UI（プリセット・選考プロセス） ===== */
 var ps=document.getElementById("preset");
 Object.keys(presets).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k;ps.appendChild(o);});
-function benchKey(a,b){if(a==="apply")return b==="doc"?"ad":(b==="attend"?"aa":"am");if(a==="attend")return b==="doc"?"ad":"am";if(a==="doc")return "dm";if(a==="casual")return null;if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?"mo":"mm";if(a==="final")return "mo";if(a==="offer")return "oa";return null;}
+function benchKey(a,b){if(a==="apply")return b==="doc"?"ad":(b==="attend"?"aa":"am");if(a==="attend")return b==="doc"?"ad":"am";if(a==="doc")return b==="casual"?"cf":"dm";if(a==="casual")return "dm";if(a==="i1"||a==="i2"||a==="i3")return b==="offer"?"mo":"mm";if(a==="final")return "mo";if(a==="offer")return "oa";return null;}
 function renderBench(){var host=document.getElementById("benchFlow");if(!host)return;var act=activeDefs(),seen={},rows="";
  for(var i=0;i<act.length-1;i++){var a=act[i].k,b=act[i+1].k,key=benchKey(a,b);
   var pair='<div class="bmpair"><span class="bmstage">'+STAGE_NOUN[a]+'</span><span class="bmar">→</span><span class="bmstage">'+STAGE_NOUN[b]+'</span></div>';
@@ -946,7 +947,7 @@ function renderBench(){var host=document.getElementById("benchFlow");if(!host)re
   else{rows+='<div class="bmrow">'+pair+'<span class="bmfix">'+benchOf(a,b)+' %（固定目安）</span></div>';}
  }
  host.innerHTML=rows;
- ["ad","dm","mm","mo","oa","am"].forEach(function(f){var el=document.getElementById("bm_"+f);if(el)el.oninput=function(){bm[f]=+this.value||0;recompute();};});
+ ["aa","ad","cf","dm","mm","mo","oa","am"].forEach(function(f){var el=document.getElementById("bm_"+f);if(el)el.oninput=function(){bm[f]=+this.value||0;recompute();};});
 }
 ps.onchange=function(){bm=Object.assign({},presets[ps.value]);renderBench();recompute();};
 document.querySelectorAll("#cfg .chip[data-k]").forEach(function(c){
