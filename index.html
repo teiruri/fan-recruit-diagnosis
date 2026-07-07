@@ -620,41 +620,11 @@ body>*{display:none!important}
 
   <div class="sec prep-only">口コミ・評判分析</div>
   <div class="sec meet-only">② 口コミ・評判分析｜候補者から見た御社</div>
-  <div class="card mrevcard">
-    <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><b>✍️ 口コミを手入力（OpenWork / エンライトハウス等）</b><span class="muted" style="font-size:11.5px">口コミサイトはログインが必要でAIが読めない場合があります。画面で見えている数値をここに入力すると、レーダー・診断にそのまま反映されます。</span></div>
-    <div class="mrevgrid">
-      <label>出典<select id="mrev_source" onchange="mrevUpdate()"><option>OpenWork</option><option>エンライトハウス</option><option>Lighthouse</option><option>転職会議</option><option>ONE CAREER</option><option>みん就</option><option>Googleクチコミ</option><option>その他</option></select></label>
-      <label>総合評価<input id="mrev_rating" type="number" min="0" max="5" step="0.1" placeholder="例 3.6" oninput="mrevUpdate()"><span class="mrevu">/5</span></label>
-      <label>口コミ件数<input id="mrev_count" type="number" min="0" step="1" placeholder="例 124" oninput="mrevUpdate()"><span class="mrevu">件</span></label>
-      <label>推奨度<input id="mrev_rec" type="number" min="0" max="100" step="1" placeholder="例 68" oninput="mrevUpdate()"><span class="mrevu">%</span></label>
-    </div>
-    <div class="mrevsub">カテゴリ別スコア（5点満点・分かる範囲で）</div>
-    <div class="mrevcats" id="mrevCats"></div>
-    <div class="mrevgrid mrevq">
-      <label class="mrevwide">👍 代表的な良い口コミ<input id="mrev_good" type="text" placeholder="例：裁量が大きく成長できる" oninput="mrevUpdate()"></label>
-      <label class="mrevwide">⚠️ 気になる口コミ<input id="mrev_bad" type="text" placeholder="例：繁忙期は残業が多い" oninput="mrevUpdate()"></label>
-    </div>
-    <div class="mrevgrid mrevq">
-      <label class="mrevwide">🏷 対象職種・部門に関する口コミメモ（任意）<input id="mrev_jobnote" type="text" placeholder="例：営業職は成果報酬が手厚い／施工管理は所長次第で差 など、職種固有の声" oninput="mrevUpdate()"></label>
-    </div>
-    <div class="mrevnote">※口コミサイトの評点は<b>全社（職種横断）の評判</b>です。対象職種の実態とは異なる場合があるため、職種固有の情報はこのメモやヒアリングで補完します。</div>
-    <div class="row" style="gap:8px;margin-top:8px"><button class="btn" type="button" onclick="mrevClear()">クリア</button><span class="muted" style="font-size:11px">※AI分析（貼り戻し）で口コミが取れている場合は、この手入力が優先されます。</span></div>
-  </div>
   <div class="card"><div id="reviews"></div></div>
 
   <div id="compareWrap">
     <div class="sec prep-only">競合比較（口コミ・WEB情報）</div>
     <div class="sec meet-only">競合比較｜自社 vs 競合（口コミ・WEB情報）</div>
-    <div class="card mrevcard prep-only">
-      <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><b>✍️ 競合の口コミを手入力（OpenWork / エンライトハウス等）</b><span class="muted" style="font-size:11.5px">競合の口コミもログイン必須でAIが読めない場合があります。見えている数値を入力すると比較レーダー・診断に反映されます（AI分析より優先）。</span></div>
-      <div class="mrevgrid">
-        <label>競合名<input id="mrev2_name" type="text" placeholder="例：株式会社◯◯" style="width:180px" oninput="mrev2Update()"></label>
-        <label>総合評価<input id="mrev2_rating" type="number" min="0" max="5" step="0.1" placeholder="例 3.9" oninput="mrev2Update()"><span class="mrevu">/5</span></label>
-      </div>
-      <div class="mrevsub" style="color:#c07a00">カテゴリ別スコア（5点満点・分かる範囲で）</div>
-      <div class="mrevcats" id="mrev2Cats"></div>
-      <div class="row" style="gap:8px;margin-top:8px"><button class="btn" type="button" onclick="mrev2Clear()">クリア</button></div>
-    </div>
     <div class="card"><div id="compare"></div></div>
   </div>
 
@@ -788,7 +758,7 @@ function defaultTreq(){return{must:"",want:"",diff:"",rarity:""};}
 var treq=defaultTreq();
 function defaultMrev2(){return{name:"",rating:"",cats:[{name:"働きがい・成長",score:""},{name:"風通し・人間関係",score:""},{name:"待遇・報酬",score:""},{name:"ワークライフバランス",score:""},{name:"経営・将来性",score:""}]};}
 var mrev2=defaultMrev2();
-function mrev2Filled(){return !!(mrev2&&(mrev2.name||mrev2.rating||(mrev2.cats&&mrev2.cats.some(function(c){return c&&c.score;}))));}
+function mrev2Filled(){return false;/* 競合口コミ手入力UIも2026-07-07に廃止（AI貼り戻しに一本化） */}
 var R={filled:false};
 var showResult=false;
 var liteAns=[null,null,null];
@@ -909,7 +879,7 @@ function aiHasContent(o,k){
  if(o&&typeof o==="object"){for(var kk in o){if(kk==="step"||kk==="axis"||kk==="name"||kk==="type")continue;if(aiHasContent(o[kk],kk))return true;}return false;}
  return false;}
 function parseAI(t){if(!t||!t.trim())return null;var s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<0||e<=s)return null;try{return sanitizeAI(JSON.parse(t.slice(s,e+1)));}catch(err){return null;}}
-function mrevFilled(){return !!(mrev&&(mrev.rating||mrev.reviewCount||mrev.recommend||(mrev.cats&&mrev.cats.some(function(c){return c&&c.score;}))||mrev.goodQuote||mrev.badQuote||mrev.jobNote));}
+function mrevFilled(){return false;/* 口コミ手入力UIは2026-07-07に廃止（AI貼り戻しに一本化）。復活時はこの行を元の判定に戻す */}
 function getAI(){var d=parseAI(document.getElementById("aiNote").value);
  if(mrevFilled()){if(!d)d={};var r=Object.assign({},d.reviews||{});
   if(mrev.source)r.source=mrev.source;if(mrev.rating)r.rating=mrev.rating;if(mrev.reviewCount)r.reviewCount=mrev.reviewCount;if(mrev.recommend)r.recommend=mrev.recommend;
