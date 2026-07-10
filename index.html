@@ -41,6 +41,17 @@ body.mode-meet .rtypebtn{font-size:16px;padding:9px 22px}
 .badge{width:26px;height:26px;border-radius:50%;background:var(--cyan);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;flex:none;box-shadow:0 1px 3px rgba(0,176,240,.4)}
 .muted{color:var(--muted);font-size:12px}
 .hl{background:linear-gradient(180deg,#eef9fe,#E2F4FD);border:1px solid #bfe6f8;border-left:5px solid var(--cyan);border-radius:10px;padding:12px 16px 12px 15px;margin-bottom:10px}
+/* AI出力を端的に見せるアコーディオン（水色ブロックの置き換え） */
+.aistatusline{font-size:12.5px;margin-top:2px;line-height:1.6}
+.aiacc{border:1px solid #dbe3e8;border-radius:8px;background:#f7f9fb;margin-top:8px}
+.aiacc>summary{cursor:pointer;padding:8px 12px;font-size:13px;font-weight:bold;color:#3a4a53;list-style:none;user-select:none}
+.aiacc>summary::-webkit-details-marker{display:none}
+.aiacc>summary::before{content:"▸ ";color:#8a97a0}
+.aiacc[open]>summary::before{content:"▾ "}
+.aiacc .aiaccbody{padding:2px 13px 12px;font-size:13.5px;line-height:1.7}
+.aiacc pre.airaw{white-space:pre-wrap;word-break:break-word;font-size:11px;color:#5a6b75;background:#fff;border:1px solid #e6edf1;border-radius:6px;padding:8px 10px;max-height:230px;overflow:auto;margin:0}
+body.mode-meet .aiacc>summary{font-size:15px}
+body.mode-meet .aiacc .aiaccbody{font-size:15.5px}
 .warnbox{border:1px solid #f0c98a;border-radius:12px;padding:12px 14px}
 .badbox{border:1px solid #f0a79f;border-radius:12px;padding:12px 14px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -638,7 +649,7 @@ body>*{display:none!important}
       <span id="copied" style="color:var(--ok);font-size:12px;display:none">コピーしました</span>
     </div>
     <textarea id="aiNote" placeholder="② AIの分析結果（所見・気づき）をここに貼り付け" style="width:100%;height:90px" oninput="onAi()"></textarea>
-    <div id="aiShow" class="hl" style="display:none;white-space:pre-wrap;margin-top:8px"></div>
+    <div id="aiShow" style="display:none;margin-top:8px"></div>
     <div class="mvcta" style="background:#fff7e6;border-color:#f0c98a;margin-top:9px">💡 <b>推奨は2段階分析</b>：<b>1回目＝アポ前</b>（WEB一次分析）→ アポ商談でヒアリングメモ・選考数値・重点施策の有無を入力 → <b>2回目＝アポ後に①をもう一度コピーして再分析→貼り戻し</b>。プロンプトには入力済みのヒアリング・数値がすべて自動で含まれるため、2回目は「課題・原因・解決策」「本日の発見（主観×客観）」「施策の設計指針（なぜ必要か・入れるべき中身）」「次回提案の骨子」がヒアリング内容ベースに置き換わり、提案精度が大きく上がります。</div>
   </div>
 
@@ -1084,24 +1095,29 @@ function renderCompare(){var wrap=document.getElementById("compareWrap");if(!wra
  host.innerHTML=h;}
 
 /* ===== 事前カルテ（導入） ===== */
+function aiStatusHtml(v){if(!v||!v.trim())return '';var d=parseAI(v);
+ if(!d)return '<span style="color:var(--warn);font-weight:bold">⚠ JSONとして読み取れません。</span>AIの出力全体（{ から } まで）を貼り付けてください。';
+ if(!aiHasContent(d))return '<span style="color:var(--warn);font-weight:bold">⚠ ひな形（テンプレート）のままのようです。</span>プロンプトをAIで実行し、値が入った出力JSONを貼り付けてください。';
+ var got=[];if(aiHasContent(d.reviews))got.push('口コミ');if(aiHasContent(d.gapAnalysis))got.push('本日の発見');if(aiHasContent(d.steps))got.push('課題・原因・解決策');if(aiHasContent(d.proposals))got.push('施策の設計指針');if(aiHasContent(d.nextMeeting))got.push('次回ご提案');
+ return '<span style="color:var(--ok);font-weight:bold">✔ AI分析を取り込みました</span>'+(got.length?'（反映：'+got.join('・')+'）':'');}
+function aiRawAccordion(v){if(!v||!v.trim())return '';return '<details class="aiacc"><summary>📋 貼り付けたAI出力を見る（全文）</summary><div class="aiaccbody"><pre class="airaw">'+esc(v)+'</pre></div></details>';}
 function renderMeetAi(){var m=document.getElementById("meetAi");if(m){var t=document.getElementById("aiNote").value,d=parseAI(t);
- if(!d){m.innerHTML=t.trim()?'<div class="muted" style="margin-bottom:6px">※AIの出力をJSON形式で貼り付けると、要約・トークに自動整形されます（現在は原文表示）。</div><div style="white-space:pre-wrap">'+esc(t)+'</div>':'（準備モードでAI分析結果を貼り付けると、ここに整形表示されます）';}
+ if(!t.trim()){m.innerHTML='<span class="muted">準備モードでAI分析結果を貼り付けると、ここに要約・アイスブレイクが表示されます。</span>';}
+ else if(!d){m.innerHTML='<div class="aistatusline">'+aiStatusHtml(t)+'</div>'+aiRawAccordion(t);}
  else{var h="";
-  if(d.icebreak)h+='<div style="background:#eef7fb;border:1px solid #bfe6f8;border-left:5px solid var(--cyan);border-radius:10px;padding:12px 14px;margin-bottom:10px"><b style="color:var(--cyanD)">🤝 事前に拝見して感じたこと</b><div style="font-size:16px;margin-top:3px">'+esc(d.icebreak)+'</div></div>';
-  if(d.summary)h+='<div class="hl" style="margin-bottom:10px"><b style="color:var(--cyanD)">事前調査の全体所感</b><div style="margin-top:3px;line-height:1.7">'+esc(d.summary)+'</div></div>';
-  if(d.focus)h+='<div style="margin:8px 0 4px"><b>特に伸ばせそうなポイント（事前の見立て）：</b><span style="color:var(--cyanD);font-weight:bold">'+esc(d.focus)+'</span></div>';
-  m.innerHTML=h||'<span class="muted">AI分析の主要項目が空です。</span>';
+  if(d.icebreak)h+='<div style="margin-bottom:9px"><b style="color:var(--cyanD)">🤝 事前に拝見して感じたこと</b><div style="margin-top:2px">'+esc(d.icebreak)+'</div></div>';
+  if(d.summary)h+='<div style="margin-bottom:9px"><b style="color:var(--cyanD)">事前調査の全体所感</b><div style="margin-top:2px">'+esc(d.summary)+'</div></div>';
+  if(d.focus)h+='<div><b>特に伸ばせそうなポイント：</b><span style="color:var(--cyanD);font-weight:bold">'+esc(d.focus)+'</span></div>';
+  m.innerHTML=h?('<div class="aistatusline">'+aiStatusHtml(t)+'</div><details class="aiacc"><summary>🤝 AIの事前分析（アイスブレイク・所感）を開く</summary><div class="aiaccbody">'+h+'</div></details>'):'<span class="muted">AI分析の主要項目が空です。</span>';
  }}
  renderReviews();renderSurvey();renderCompare();renderTargetReq();
 }
-function onAi(){var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2=document.getElementById("aiNote2");if(t2&&t2.value!==v)t2.value=v;renderMeetAi();recompute();}
+function onAi(){var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");
+ if(v.trim()){s.style.display="block";s.innerHTML='<div class="aistatusline">'+aiStatusHtml(v)+'</div>'+aiRawAccordion(v);}else{s.style.display="none";s.innerHTML="";}
+ var t2=document.getElementById("aiNote2");if(t2&&t2.value!==v)t2.value=v;renderMeetAi();recompute();}
 function onAi2(){var t2=document.getElementById("aiNote2");if(!t2)return;var v=t2.value;document.getElementById("aiNote").value=v;
  var m=document.getElementById("aiNote2Msg");
- if(m){if(!v.trim())m.textContent='';
-  else{var d=parseAI(v);
-   if(!d)m.innerHTML='<span style="color:var(--warn);font-weight:bold">⚠ JSONとして読み取れません。</span>AIの出力全体（{ から } まで）を貼り付けてください。';
-   else if(!aiHasContent(d))m.innerHTML='<span style="color:var(--warn);font-weight:bold">⚠ ひな形（テンプレート）のままのようです。</span>プロンプトをChatGPT/Claudeで実行し、<b>値が入った出力JSON</b>を貼り付けてください（プロンプト自体を貼るのではありません）。';
-   else{var got=[];if(aiHasContent(d.gapAnalysis))got.push('本日の発見');if(aiHasContent(d.proposals))got.push('施策の設計指針');if(aiHasContent(d.nextMeeting))got.push('次回ご提案');if(aiHasContent(d.steps))got.push('課題・原因・解決策');if(aiHasContent(d.reviews))got.push('口コミ');m.innerHTML='<span style="color:var(--ok);font-weight:bold">✔ 分析結果を取り込みました</span>'+(got.length?'（反映：'+got.join('・')+'）':'')+'　下の「診断結果を表示」で最新の内容になります。';}}}
+ if(m){if(!v.trim())m.innerHTML='';else{var st=aiStatusHtml(v),d=parseAI(v);m.innerHTML=st+(d&&aiHasContent(d)?'　下の「診断結果を表示」で最新の内容になります。':'');}}
  onAi();}
 function periodStr(){var f=document.getElementById("periodFrom").value,t=document.getElementById("periodTo").value;if(!f&&!t)return"";return (f||"（未定）")+" 〜 "+(t||"（未定）");}
 function updateMeetHead(){var c=document.getElementById("company").value.trim();var e=document.getElementById("meetCompany");if(e)e.textContent=c||"（会社名）";var mm=document.getElementById("meetMeta");if(mm){var j=document.getElementById("jobtitle").value.trim(),p=periodStr(),parts=[];if(j)parts.push("職種："+j);if(p)parts.push("対象期間："+p);mm.textContent=parts.join("　／　");}}
@@ -1350,7 +1366,7 @@ function copyJson(){var t=document.getElementById("jsonText");if(!t)return;t.foc
 function downloadJson(){var t=document.getElementById("jsonText"),o=document.getElementById("jsonOverlay");if(!t)return;var fn=o.getAttribute("data-fn")||"採用診断_診断.json",m=document.getElementById("jsonMsg");try{var blob=new Blob([t.value],{type:"application/json"});if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,fn);if(m)m.textContent="保存しました";return;}var url=(window.URL||window.webkitURL).createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);(window.URL||window.webkitURL).revokeObjectURL(url);},1500);if(m)m.textContent="ダウンロードしました";}catch(e){if(m)m.textContent="保存に失敗："+(e&&e.message?e.message:e);}}
 function importJSON(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var txt=String(rd.result||"").replace(/^﻿/,"").trim();var st;try{st=JSON.parse(txt);}catch(e){alert("JSONの読み込みに失敗しました。\nこのファイルはJSON形式ではないか、壊れています。\n\n詳細："+e.message+"\n先頭："+txt.slice(0,50));ev.target.value="";return;}try{applyState(st);alert("「"+(st.company||"診断")+"」を読み込みました");}catch(e2){alert("データの適用中にエラーが発生しました。\n詳細："+e2.message);}ev.target.value="";};rd.onerror=function(){alert("ファイルの読み込みに失敗しました（アクセス権をご確認ください）。");};rd.readAsText(f);}
 function refreshList(){var sel=document.getElementById("loadSel"),all=store();sel.innerHTML='<option value="">保存した診断を開く…</option>';Object.keys(all).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=k+(all[k]&&all[k].savedAt?"（"+all[k].savedAt+"）":"");sel.appendChild(o);});}
-function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true,i3:false},st.cfg);vals=Object.assign({},st.vals);valsE=Object.assign({},st.valsE||{});valsM=Object.assign({},st.valsM||{});lineTouched=Object.assign({},st.lineTouched||{});numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();mrev2=Object.assign(defaultMrev2(),st.mrev2||{});if(st.mrev2&&st.mrev2.cats)mrev2.cats=defaultMrev2().cats.map(function(c,i){return{name:c.name,score:(st.mrev2.cats[i]&&st.mrev2.cats[i].score)||""};});fillMrev2Inputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}rtype=(st.rtype==='shinsotsu')?'shinsotsu':'career';var _rb1=document.getElementById('rtCareer'),_rb2=document.getElementById('rtShin');if(_rb1)_rb1.classList.toggle('act',rtype!=='shinsotsu');if(_rb2)_rb2.classList.toggle('act',rtype==='shinsotsu');applyRtypeLabels();renderBench();var v=document.getElementById("aiNote").value,s=document.getElementById("aiShow");if(v.trim()){s.style.display="block";s.textContent=v;}else s.style.display="none";var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=v;renderPrepNumbers();renderMeetAi();updateMeetHead();recompute();}
+function applyState(st){if(!st)return;document.getElementById("company").value=st.company||"";document.getElementById("jobtitle").value=st.job||"";document.getElementById("periodFrom").value=st.periodFrom||"";document.getElementById("periodTo").value=st.periodTo||"";document.getElementById("v_target").value=(st.vals&&st.vals.target)||"";document.getElementById("hireVal").value=(st.vals&&st.vals.hireval)||"";document.getElementById("siteStatus").value=String((st.vals&&st.vals.nosite)||0);document.getElementById("pitchStatus").value=String((st.vals&&st.vals.nopitch)||0);document.getElementById("closingStatus").value=String((st.vals&&st.vals.noclosing)||0);seedUrls("urls",st.urls||(st.url?[{type:"採用サイト",url:st.url}]:null));seedUrls("rivalUrls",st.rivalUrls||null);document.getElementById("aiNote").value=st.aiNote||"";hpnotes=Object.assign({},st.hpnotes);cfg=Object.assign({doc:true,casual:false,i1:true,i2:false,final:true,i3:false},st.cfg);vals=Object.assign({},st.vals);valsE=Object.assign({},st.valsE||{});valsM=Object.assign({},st.valsM||{});lineTouched=Object.assign({},st.lineTouched||{});numSet=st.numSet?Object.assign({},st.numSet):{};if(!st.numSet){defs.forEach(function(dd){if(st.vals&&st.vals[dd.k]!==undefined&&st.vals[dd.k]!==null&&st.vals[dd.k]!=="")numSet[dd.k]=true;});}bm=Object.assign({},st.bm);mrev=Object.assign(defaultMrev(),st.mrev||{});if(st.mrev&&st.mrev.cats)mrev.cats=defaultMrev().cats.map(function(c,i){return{name:c.name,score:(st.mrev.cats[i]&&st.mrev.cats[i].score)||""};});fillMrevInputs();mrev2=Object.assign(defaultMrev2(),st.mrev2||{});if(st.mrev2&&st.mrev2.cats)mrev2.cats=defaultMrev2().cats.map(function(c,i){return{name:c.name,score:(st.mrev2.cats[i]&&st.mrev2.cats[i].score)||""};});fillMrev2Inputs();treq=Object.assign(defaultTreq(),st.treq||{});fillTreqInputs();if(st.actions)steps.forEach(function(s,si){if(st.actions[si])s.on=st.actions[si].slice();});["doc","casual","i2","final"].forEach(function(kk){var c=document.querySelector('#cfg .chip[data-k="'+kk+'"]');if(c)c.classList.toggle("on",!!cfg[kk]);});if(st.preset){ps.value=st.preset;}rtype=(st.rtype==='shinsotsu')?'shinsotsu':'career';var _rb1=document.getElementById('rtCareer'),_rb2=document.getElementById('rtShin');if(_rb1)_rb1.classList.toggle('act',rtype!=='shinsotsu');if(_rb2)_rb2.classList.toggle('act',rtype==='shinsotsu');applyRtypeLabels();renderBench();var t2s=document.getElementById("aiNote2");if(t2s)t2s.value=(st.aiNote||"");renderPrepNumbers();updateMeetHead();onAi();var m2=document.getElementById("aiNote2Msg");if(m2)m2.innerHTML=(st.aiNote&&st.aiNote.trim())?aiStatusHtml(st.aiNote):"";}
 document.getElementById("loadSel").onchange=function(){var k=this.value;if(!k)return;applyState(store()[k]);};
 function newCase(){if(!confirm("新規診断を開始しますか？（未保存の入力は消えます）"))return;location.reload();}
 
