@@ -496,7 +496,7 @@ body.mode-meet .credit{font-size:15px}
 .rcta{background:#eaf7fd;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:12.5px}
 .rfoot{margin-top:14px;font-size:11px;color:#586872;text-align:center;border-top:1px solid #dbe3e8;padding-top:8px}
 @media print{
-@page{size:A3 landscape;margin:6mm}
+@page{size:A3 landscape;margin:0}
 body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body>*{display:none!important}
 .wrap{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
@@ -504,11 +504,14 @@ body>*{display:none!important}
 #resultWrap{display:block!important}
 #resultWrap>*:not(#a3report){display:none!important}
 #a3report{display:block!important;overflow:visible!important}
-.a3sheet{max-width:none;margin:0 auto}
-.a3page{page-break-after:always;break-after:page;box-shadow:none;border:none;border-radius:0;margin:0 auto}
-.a3page:last-child{page-break-after:auto;break-after:auto}
+/* 1枚＝1用紙。固定サイズの枠でクリップし、中身はJSでtransform:scaleして収める（zoom不使用で空白ページ・区切りずれを防止） */
+.a3prtpage{width:420mm;height:297mm;overflow:hidden;box-sizing:border-box;padding:9mm;page-break-after:always;break-after:page;page-break-inside:avoid;margin:0}
+.a3prtpage:last-child{page-break-after:auto;break-after:auto}
+.a3sheet{max-width:none!important;width:auto;margin:0;padding:0;box-shadow:none;border:none;border-radius:0;transform-origin:top left}
 .a3card,.a3move,.a3leak,.a3plancard,.a3plan,.a3ctaband{break-inside:avoid}
 }
+/* 画面上は用紙枠は素通し（従来の.a3sheet外観を維持） */
+.a3prtpage{margin:0 auto}
 </style>
 </head>
 <body>
@@ -524,7 +527,7 @@ body>*{display:none!important}
   <button class="btn" onclick="saveCase()">保存</button>
   <button class="btn" onclick="exportJSON()" title="この診断をJSONファイルで書き出し">⬇ JSON</button>
   <label class="btn" title="JSONファイルを読み込み" style="cursor:pointer">⬆ JSON<input type="file" accept="application/json,.json" onchange="importJSON(event)" style="display:none"></label>
-  <button class="btn pri" onclick="printReport()">PDF出力</button>
+  <button class="btn pri" onclick="printReport()" title="印刷ダイアログで「用紙サイズ＝A3」「向き＝横」「余白＝なし（または既定）」を選ぶと、A3横2枚できれいに出力されます">PDF出力（A3・横）</button>
 </div>
 
 <div class="wrap">
@@ -1455,7 +1458,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var gradeHtml='<div class="a3grade"><span class="a3gl" style="color:'+cssv(gl[1])+'">'+g[0]+'</span><span class="a3gn">'+gv+'<small> / 100</small></span><span class="a3gt" style="color:'+cssv(gl[1])+'">'+g[1]+(R.quant!=null?'<br><small style="font-weight:normal;color:#7a8791">質'+R.ov+'×量'+R.quant+'%</small>':'')+'</span></div>';
  var head1H='<div class="a3head"><div><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント<span class="a3pgno">1/2　診断結果</span></div><div class="a3sub">'+subLine+'</div></div>'+gradeHtml+'</div>';
  var head2H='<div class="a3head"><div><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント<span class="a3pgno">2/2　アクションプラン・ご提案</span></div><div class="a3sub">'+subLine+'</div></div>'+gradeHtml+'</div>';
- var h='<div class="a3sheet a3page">'+head1H+'<div class="a3grid">';
+ var h='<div class="a3prtpage"><div class="a3sheet a3page">'+head1H+'<div class="a3grid">';
  // COL1
  var dIt=[];
  if(R.gap){(R.gap.agree||[]).filter(Boolean).slice(0,1).forEach(function(x){dIt.push(['共感','#1f9e6a',x]);});(R.gap.blind||[]).filter(Boolean).slice(0,2).forEach(function(x){dIt.push(['盲点','#d8453c',x]);});(R.gap.surprise||[]).filter(Boolean).slice(0,2).forEach(function(x){dIt.push(['意外','#d98a0c',x]);});}
@@ -1501,27 +1504,33 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  if(R.volShort||R.targetUp){volCard='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">目標達成に必要な応募 約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol"><b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
  h+='</div>'; /* col3 close */
  h+='</div>'; /* grid close */
- h+='<div class="a3foot">1 / 2　—　2枚目に「課題 → 原因 → 解決策」のアクションプランとご提案をまとめています。</div></div>'; /* page1 close */
+ h+='<div class="a3foot">1 / 2　—　2枚目に「課題 → 原因 → 解決策」のアクションプランとご提案をまとめています。</div></div></div>'; /* page1 close（sheet + prtpage）*/
  /* ===== Page 2：アクションプラン・ご提案 ===== */
- var p2='<div class="a3sheet a3page a3p2">'+head2H;
+ var p2='<div class="a3prtpage"><div class="a3sheet a3page a3p2">'+head2H;
  if(tgtCard||volCard)p2+='<div class="a3grid2" style="grid-template-columns:'+((tgtCard&&volCard)?'1fr 1fr':'1fr')+'">'+tgtCard+volCard+'</div>';
  var order=diagOrder();
  p2+='<div class="a3plan"><h4>採用成功に向けた 課題 → 原因 → 解決策（優先順・伸びしろ順）｜FANサイクルのどこを攻めるか</h4>'+a3FanStrip(order)+a3PlanCards(order)+'</div>';
  var nmA3=(R.nextM&&R.nextM.agenda)?R.nextM.agenda.filter(Boolean).slice(0,3):[];
  var nmHook3=(R.nextM&&R.nextM.hook)?R.nextM.hook:'';
  p2+='<div class="a3ctaband"><b>🤝 次回ご提案</b>'+(nmA3.length?'<ol class="a3agenda">'+nmA3.map(function(a){return '<li>'+esc(a)+'</li>';}).join('')+'</ol>':'<div class="a3ctatxt">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div>')+(nmHook3?'<div class="a3ctatxt">'+esc(nmHook3)+'</div>':'')+'</div>';
- p2+='<div class="a3foot"><b>診断ロジック</b>：選考各段階の到達度＝「市場ベンチマーク（当社の採用支援実績＋主要'+(isShin()?'新卒':'転職')+'市場データに基づく段階別水準）」×「貴社の実績歩留まり」で算出。総合採用力＝選考の質（歩留まり）×目標達成（量）。口コミは全社（職種横断）の公開評価に基づく参考値です。<br>本診断は無料の参考値です。株式会社カケハシスカイ　TEL:0120-342-834　監修：'+AUTHOR+'　診断日 '+today+'</div></div>';
+ p2+='<div class="a3foot"><b>診断ロジック</b>：選考各段階の到達度＝「市場ベンチマーク（当社の採用支援実績＋主要'+(isShin()?'新卒':'転職')+'市場データに基づく段階別水準）」×「貴社の実績歩留まり」で算出。総合採用力＝選考の質（歩留まり）×目標達成（量）。口コミは全社（職種横断）の公開評価に基づく参考値です。<br>本診断は無料の参考値です。株式会社カケハシスカイ　TEL:0120-342-834　監修：'+AUTHOR+'　診断日 '+today+'</div></div></div>';
  host.innerHTML=h+p2;}
 function printReport(){
  renderA3();
- var sheets=[].slice.call(document.querySelectorAll('#a3report .a3sheet'));
+ var sheets=[].slice.call(document.querySelectorAll('#a3report .a3prtpage > .a3sheet'));
  if(!sheets.length){window.print();return;}
- var wrap=sheets[0].closest('.wrap'),pwMax=wrap?wrap.style.maxWidth:'';
+ var wrap=document.querySelector('.wrap'),pwMax=wrap?wrap.style.maxWidth:'';
  if(wrap)wrap.style.maxWidth='none';
- var mm2px=96/25.4,availW=(420-12)*mm2px,availH=(297-12)*mm2px;
- var saved=sheets.map(function(s){return[s.style.maxWidth,s.style.width,s.style.zoom];});
- sheets.forEach(function(s){s.style.maxWidth='none';s.style.width=availW+'px';s.style.zoom='';var nh=s.scrollHeight;var z=Math.min(1,availH/nh);z=Math.max(0.6,Math.round(z*1000)/1000);s.style.zoom=z;});
- var cleanup=function(){sheets.forEach(function(s,i){s.style.maxWidth=saved[i][0];s.style.width=saved[i][1];s.style.zoom=saved[i][2]||'';});if(wrap)wrap.style.maxWidth=pwMax;window.removeEventListener('afterprint',cleanup);};
+ var mm2px=96/25.4,padmm=9,innerW=(420-padmm*2)*mm2px,innerH=(297-padmm*2)*mm2px; /* A3横 用紙内寸（余白9mm） */
+ var saved=sheets.map(function(s){return[s,s.style.width,s.style.maxWidth,s.style.transform,s.style.transformOrigin];});
+ sheets.forEach(function(s){
+  /* 印刷の実寸で自然高さを測定→縮尺算出→transformで収める（zoom不使用） */
+  s.style.maxWidth='none';s.style.width=innerW+'px';s.style.transform='none';s.style.transformOrigin='top left';
+  var nh=s.scrollHeight,nw=s.scrollWidth||innerW;
+  var sc=Math.min(1,innerW/nw,innerH/nh);sc=Math.max(0.55,Math.floor(sc*1000)/1000);
+  s.style.transform='scale('+sc+')';
+ });
+ var cleanup=function(){saved.forEach(function(o){o[0].style.width=o[1];o[0].style.maxWidth=o[2];o[0].style.transform=o[3];o[0].style.transformOrigin=o[4];});if(wrap)wrap.style.maxWidth=pwMax;window.removeEventListener('afterprint',cleanup);};
  window.addEventListener('afterprint',cleanup);
  window.print();
  setTimeout(cleanup,1500);
