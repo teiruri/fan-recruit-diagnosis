@@ -656,8 +656,8 @@ body>*{display:none!important}
     <div class="mvcta" style="background:#fff7e6;border-color:#f0c98a;margin-top:9px">💡 <b>推奨は2段階分析</b>：<b>1回目＝アポ前</b>（WEB一次分析）→ アポ商談でヒアリングメモ・選考数値・重点施策の有無を入力 → <b>2回目＝アポ後に①をもう一度コピーして再分析→貼り戻し</b>。プロンプトには入力済みのヒアリング・数値がすべて自動で含まれるため、2回目は「課題・原因・解決策」「本日の発見（主観×客観）」「施策の設計指針（なぜ必要か・入れるべき中身）」「次回提案の骨子」がヒアリング内容ベースに置き換わり、提案精度が大きく上がります。</div>
   </div>
 
-  <div class="sec prep-only">選考プロセス設定（企業に合わせてON/OFF）</div>
-  <div class="card row prep-only" id="cfg">
+  <div class="sec">選考プロセス設定（企業に合わせてON/OFF｜書類選考・二次選考など）</div>
+  <div class="card row" id="cfg">
     <span class="chip on lock">応募・内定・承諾</span>
     <span class="chip" data-k="doc">書類選考</span>
     <span class="chip" data-k="casual">カジュアル面談</span>
@@ -1185,10 +1185,12 @@ function recompute(){
  var lastIC=vals[lastI]||0,offerC=vals.offer||0,acceptC=vals.accept||0;
  var expProc=1,collect=false;for(var pi=0;pi<act.length-1;pi++){var ak=act[pi].k,bk=act[pi+1].k;if(ak===fmk)collect=true;if(collect)expProc*=benchOf(ak,bk)/100;if(bk==="offer")break;}
  var qtarget=vals.target||0;
- var reqApplyE=(qtarget>0&&acceptC>0)?Math.round(qtarget*apply/acceptC):0;
- var mobFill=(reqApplyE>0)?Math.min(100,Math.round(apply/reqApplyE*100)):null;
+ /* ①認知＝母集団の量。目標達成に必要な応募数は「市場標準の通過率」で逆算する（エージェント等で実績の通過率が高いと、少ない応募でも認知が満点に出てしまう不具合を修正）。 */
+ var stdRate=1;for(var _si=0;_si<act.length-1;_si++){var _b=benchOf(act[_si].k,act[_si+1].k);stdRate*=(_b>0?_b:1)/100;}
+ var reqApplyStd=(qtarget>0&&stdRate>0)?Math.ceil(qtarget/stdRate):0;
+ var mobFill=(reqApplyStd>0)?Math.min(100,Math.round(apply/reqApplyStd*100)):null;
  var sc=[];
- /* ①認知される＝母集団の量（目標達成に必要な応募数への充足度）。目標未設定時のみ応募→次段の率で代替 */
+ /* ①認知される＝母集団の量（目標達成に必要な応募数〈標準通過率で逆算〉への充足度）。目標未設定時のみ応募→次段の率で代替 */
  sc[0]=(mobFill!=null)?mobFill:(isShin()?seg(apply>0?preDoc/apply:0,(bm.aa||55)/100):(docOn?seg(apply>0?docC/apply:0,b_ad):seg(apply>0?fmC/apply:0,b_am)));
  sc[1]=seg(docC>0?fmC/docC:0,(docOn?b_dm:(isShin()?(bm.am||25)/100:b_dm)));
  sc[2]=seg(fmC>0?offerC/fmC:0,expProc);
@@ -1240,14 +1242,18 @@ function recompute(){
 
  var noSite=!!(vals.nosite),noPitch=!!(vals.nopitch),noClosing=!!(vals.noclosing);
  var gapN=(target>0)?Math.max(0,target-(vals.accept||0)):0,gapLoss=(gapN>0&&hv>0)?gapN*hv:0;
- var reqApply=(target>0&&(vals.accept||0)>0)?Math.round(target*apply/(vals.accept||1)):0;
+ /* 必要応募数は「市場標準の通過率で逆算」に統一（認知スコアと整合。実績の高効率で母集団の薄さが隠れないように） */
+ var reqApply=reqApplyStd;
  var applyGap=reqApply>0?Math.max(0,reqApply-apply):0;
+ var underTarget=(target>0&&(vals.accept||0)<target);
+ var thinPool=(mobFill!=null&&mobFill<70);/* 母集団が標準必要数の70%未満＝実質的に薄い */
  var procWeak=[1,2,3].filter(function(i){return sc[i]<55;}).length;
- var volShort=(target>0&&(vals.accept||0)<target&&applyGap>0);
+ var volShort=(target>0&&thinPool);
  var volDriven=volShort&&procWeak<=1;
- var reqInterview=(target>0&&(vals.accept||0)>0&&fmC>0)?Math.round(target*fmC/(vals.accept||1)):0;
+ var stdF2A=expProc*b_oa;/* 標準 面接→承諾 */
+ var reqInterview=(target>0&&stdF2A>0)?Math.ceil(target/stdF2A):0;
  var interviewGap=reqInterview>0?Math.max(0,reqInterview-fmC):0;
- var targetUp=(target>0&&(applyGap>0||interviewGap>0));
+ var targetUp=(target>0&&(thinPool||interviewGap>0));
  var weak=[0,1,2,3].map(function(i){return{i:i,sc:sc[i]};}).filter(function(o){return o.sc<65;}).sort(function(a,b){return a.sc-b.sc;}).slice(0,3);
  var mv=document.getElementById("moves");
  var wpc=(worst>=0&&(vals[act[worst].k]||0)>0)?Math.round((vals[act[worst+1].k]||0)/(vals[act[worst].k]||0)*100):0;
@@ -1272,7 +1278,7 @@ function recompute(){
  if(dropR>=25)lines.push('<b style="color:var(--bad)">応募後離脱が'+dropR+'%</b>＝WEB上の競合比較で“面接前”に格下げの可能性（②③）');
  if(accRate>0&&accRate<bm.oa/100)lines.push('内定→承諾'+Math.round(accRate*100)+'%が目安'+bm.oa+'%未満＝意思決定の後押しに余地（④）');
  if(accRate>0){var declR=Math.round((1-accRate)*100);var _da=declAvg();lines.push('<span class="muted">参考：内定辞退率の市場平均は約'+_da+'%（'+recruitTitle()+'）。御社は約<b style="color:'+(declR>_da?"var(--bad)":"var(--ok)")+'">'+declR+'%</b>'+(declR>_da?"（平均より高め＝クロージングに伸びしろ）":"（平均並み〜良好）")+'</span>');}
- if(volShort||targetUp)lines.push('<b style="color:var(--bad)">目標に対し応募/面接が不足</b>（必要応募 約'+reqApply+'名／現状'+apply+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<b>ターゲット設定と、ターゲットへの求人の魅力訴求が弱い可能性</b>。①認知される・②惹きつけるの見直しが最優先');
+ if(volShort||targetUp){var _uh=underTarget?'<b style="color:var(--bad)">目標に対し応募/面接が不足</b>':'<b style="color:var(--warn)">目標は達成も、母集団（応募数）が市場標準比で薄い</b>',_uc=underTarget?'<b>ターゲット設定と、ターゲットへの求人の魅力訴求が弱い可能性</b>。①認知される・②惹きつけるの見直しが最優先':'少数の応募を高い通過率（エージェント依存など）で採れている状態＝<b>母集団形成（①認知）に課題</b>で、再現性・スケールにリスク';lines.push(_uh+'（必要応募〈市場標準〉約'+reqApply+'名／現状'+apply+'名'+(applyGap>0?'・不足約'+applyGap+'名':'')+(interviewGap>0?'／面接も約'+interviewGap+'名不足':'')+'）＝'+_uc);}
  if(noSite)lines.push('<b style="color:var(--warn)">自社採用サイトが無い（不十分）</b>＝WEBで魅力・信頼が伝わらず②③④に影響。採用サイト制作が有効');
  if(noPitch)lines.push('<b style="color:var(--warn)">採用ピッチ資料が無い</b>＝WEB/資料での魅力訴求が弱く②惹きつけに影響。採用ピッチ資料の整備が有効（②）');
  if(noClosing)lines.push('<b style="color:var(--warn)">クロージングツール（本人・家族）が無い</b>＝内定→承諾'+Math.round(accRate*100)+'%に影響。クロージングブックが有効（④）');
@@ -1305,7 +1311,7 @@ function recompute(){
  var setLblA=isShin()?'エントリー・予約':'応募',setLblB=isShin()?'一次選考':'面接';
  var setBanner='<div class="execset" style="border-color:'+setCol+'"><div class="execsetl">'+setLblA+' → '+setLblB+' 設定率</div><div class="execsetv" style="color:'+setCol+'">'+setRate+'<small>%</small></div><div class="execsetm">'+setLblA+' '+apply+'名 → '+setLblB+' '+fmC+'名　／　目安 '+setBench+'%</div></div>';
  var ctx='';
- if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>目標に必要な応募 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">ターゲット設定と求人の魅力訴求が弱い可能性</span></li>';
+ if(volShort||targetUp)ctx+='<li><b>ターゲット/母集団：</b>'+(underTarget?'目標に必要な応募（市場標準）':'目標達成に必要な母集団（市場標準）')+' 約'+reqApply+'名／現状 '+apply+'名（不足 '+applyGap+'名'+(interviewGap>0?'・面接も約'+interviewGap+'名不足':'')+'）＝<span style="color:#ffcf6b">'+(underTarget?'ターゲット設定と求人の魅力訴求が弱い可能性':'母集団が薄く再現性・スケールにリスク（エージェント依存など）')+'</span></li>';
  if(noSite)ctx+='<li><b>採用サイト：</b><span style="color:#ffcf6b">無し・不十分</span> → 採用サイト制作（TRACE）を優先施策に</li>';
  if(compInferior)ctx+='<li><b>競合比較：</b><span style="color:#ffcf6b">'+cmpArr.map(function(x){return esc(x.axis);}).join('・')+'</span> が競合に劣る → ②惹きつけ（採用サイト・求人・条件の打ち出し）の刷新</li>';
  var execLoss=(gapLoss>0)?('<li><b>経営インパクト：</b>目標未達 '+gapN+'名 ＝ 年間 約<b style="color:#ffcf6b">'+yen(gapLoss)+'</b> の機会損失（1人採用の価値 '+yen(hv)+' × 未達 '+gapN+'名）</li>'):'';
@@ -1313,7 +1319,7 @@ function recompute(){
  var es=document.getElementById("execSummary");
  if(es)es.innerHTML='<div class="exec"><div class="exectop"><b>📊 総括（エグゼクティブサマリー）</b></div><div class="exechead">'+headline+'</div><div class="execgrade">総合採用力：<span style="color:'+egColor(egv)+'">'+eg[0]+'</span> '+egv+'点（'+eg[1]+'）</div>'+qxqLine+setBanner+'<ul><li><b>最大の機会損失：</b>'+steps[low].name+'（スコア'+sc[low]+'）'+(worst>=0?' ／ 「'+act[worst].n+'→'+act[worst+1].n+'」の通過率が目安を'+Math.max(0,wb-wpc)+'pt下回る':'')+'</li>'+ctx+execLoss+'<li><b>改善インパクト：</b>'+impLine+'</li><li><b>次にやるべき1手：</b>'+esc(topSolve)+' → 弊社「'+esc(topSvc)+'」</li></ul></div>';
 
- R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(preDoc>0?Math.round(docC/preDoc*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(preDoc>0?Math.round(fmC/preDoc*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench,gapN:gapN,gapLoss:gapLoss,acc:(vals.accept||0),tdiff:tdiff,trarity:trarity,tHard:tHard,tA:(tA||null),tmust:(treq.must||""),twant:(treq.want||""),facts:facts.slice(0,4),gap:(gpA||null),nextM:((dA&&dA.nextMeeting)||null)};
+ R={filled:true,sc:sc.slice(),ov:ov,low:low,met:met,failR:failR,dropR:dropR,untR:untR,apply:apply,accRate:accRate,offerRate:offerRate,worst:worst,wb:wb,wpc:wpc,worstFrom:(worst>=0?act[worst].n:""),worstTo:(worst>=0?act[worst+1].n:""),impLo:impLo,impHi:impHi,target:vals.target||0,hv:hv,docOn:docOn,untouched:untouched,fail:fail,drop:drop,noSite:noSite,noPitch:noPitch,noClosing:noClosing,reqApply:reqApply,applyGap:applyGap,reqInterview:reqInterview,interviewGap:interviewGap,volShort:volShort,volDriven:volDriven,targetUp:targetUp,underTarget:underTarget,compInferior:compInferior,compAttract:compAttract,total:total,quant:quant,fmC:fmC,docC:docC,docPassRate:(docOn?(preDoc>0?Math.round(docC/preDoc*100):0):null),docPassBench:bm.ad,attendRate:(docOn?(docC>0?Math.round(fmC/docC*100):0):(preDoc>0?Math.round(fmC/preDoc*100):0)),attendBench:(docOn?bm.dm:(bm.am||50)),setRate:setRate,setBench:setBench,gapN:gapN,gapLoss:gapLoss,acc:(vals.accept||0),tdiff:tdiff,trarity:trarity,tHard:tHard,tA:(tA||null),tmust:(treq.must||""),twant:(treq.want||""),facts:facts.slice(0,4),gap:(gpA||null),nextM:((dA&&dA.nextMeeting)||null)};
  if(showResult)renderA3();
  for(var i=0;i<5;i++){var cse=document.getElementById("cs_score_"+i);if(cse){var cl=lv(sc[i]);cse.innerHTML='<span style="color:'+cl[1]+';font-weight:bold">'+cl[0]+' '+sc[i]+'</span> <span class="muted">'+met[i]+'</span>';}}
  [].forEach.call(document.querySelectorAll('#stepper .stp[data-i]'),function(el){el.classList.toggle("act",+el.dataset.i===low);});
@@ -1439,7 +1445,7 @@ function a3PlanCards(order){var d=getAI();var pp=(d&&d.proposals)||{};return '<d
  else if(R.noPitch&&i===1){issue='採用ピッチ資料が無く、会社の魅力・方針が候補者に体系的に伝わらない';cause='紹介前・面接前の動機形成が弱く、②惹きつけの弱さにつながる';solve='採用ピッチ資料を制作し、事業／仕事／社員／数字で魅力を体系化する';svc='採用ピッチ資料制作（制作顧問／TRAY）';}
  else if(R.compAttract&&i===1){issue='採用サイト・求人・条件の打ち出しが競合に見劣りし、候補者の比較で選ばれにくい';cause='競合の採用サイト/求人原稿/コンテンツ充実度/条件提示に対して情報量・魅力が不足';solve='競合と比較して選ばれる採用サイト・求人・採用ピッチに刷新し、条件・魅力の打ち出しを強化する';svc='TRACE ／ 制作顧問（クリエイティブ）';}
  else if(R.targetUp&&i===1){issue='ターゲットに刺さる求人の魅力訴求が弱く、狙う層の応募・志望度が伸びない';cause='ターゲット（求める人物像）の設定が曖昧、または訴求がターゲットにずれている';solve='ターゲットを明確化し、そのターゲットに刺さる求人原稿・採用サイト・採用ピッチで魅力訴求を強化する';svc='TRACE ／ 制作顧問（クリエイティブ）';}
- else if((R.targetUp||R.volDriven)&&i===0){issue='目標に対し応募・面接（母集団）が不足（必要応募 約'+R.reqApply+'名／現状 '+R.apply+'名'+(R.interviewGap>0?'・面接 約'+R.interviewGap+'名不足':'')+'）';cause='ターゲット設定が曖昧で、狙う層へリーチできていない（＋立地/規模の不利）';solve='ターゲット（求める人物像）を明確化し、狙う層へ届く媒体・スカウト・エージェントに最適化して母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
+ else if((R.targetUp||R.volDriven)&&i===0){issue=(R.underTarget?'目標に対し応募・面接（母集団）が不足':'目標は達成も母集団（応募数）が市場標準比で薄い')+'（必要応募〈市場標準〉約'+R.reqApply+'名／現状 '+R.apply+'名'+(R.interviewGap>0?'・面接 約'+R.interviewGap+'名不足':'')+'）';cause=R.underTarget?'ターゲット設定が曖昧で、狙う層へリーチできていない（＋立地/規模の不利）':'少数の応募を高い通過率（エージェント依存など）で採れており、母集団形成が手薄＝再現性・スケールにリスク';solve='ターゲット（求める人物像）を明確化し、狙う層へ届く媒体・スカウト・エージェントに最適化して母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
  return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx]||'順次')+'</span></div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+extra+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
@@ -1501,7 +1507,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100),rcol=rate>=100?"#1f9e6a":rate>=70?"#0089c4":rate>=40?"#d98a0c":"#d8453c";
   h+='<div class="a3card"><h4>採用目標に対する実現度</h4><div style="font-size:12px">目標 <b>'+R.target+'</b>名 ／ 現状 <b>'+acc+'</b>名</div><div class="goalbar" style="margin-top:5px"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div><div style="margin-top:4px;font-weight:bold;color:'+rcol+'">達成率 '+rate+'%'+(R.impHi>0?'（打ち手で '+Math.round((acc+R.impLo)/R.target*100)+'〜'+Math.round((acc+R.impHi)/R.target*100)+'%へ）':'')+'</div>'+(R.hv>0&&R.impHi>0?'<div style="font-size:11px;color:#0089c4;margin-top:3px">改善インパクト 約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'</div>':'')+'</div>';}
  var volCard='';
- if(R.volShort||R.targetUp){volCard='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">目標達成に必要な応募 約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol"><b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
+ if(R.volShort||R.targetUp){volCard='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">'+(R.underTarget?'目標達成に必要な応募':'目標達成に必要な母集団')+'（市場標準の通過率で逆算）約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol">'+(R.underTarget?'<b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。':'<b>目標は達成していますが、母集団は市場標準に対して薄い状態</b>です（少数の応募を高い通過率＝エージェント依存などで採れている＝再現性・スケールにリスク）。')+'①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
  h+='</div>'; /* col3 close */
  h+='</div>'; /* grid close */
  h+='<div class="a3foot">1 / 2　—　2枚目に「課題 → 原因 → 解決策」のアクションプランとご提案をまとめています。</div></div></div>'; /* page1 close（sheet + prtpage）*/
