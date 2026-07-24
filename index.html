@@ -165,6 +165,8 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3foot{margin-top:10px;border-top:1px solid #dbe3e8;padding-top:6px;font-size:10.5px;color:#586872;text-align:center}
 /* === A3 複数ページ・大判タイポ === */
 .a3gridP{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.a3basis{margin-top:8px;background:#f4f8fb;border:1px solid #dbe3e8;border-left:4px solid var(--cyan);border-radius:8px;padding:9px 12px;font-size:12.5px;line-height:1.7;color:#42525c}
+.a3pwhy{font-size:12px;color:#7a5b1e;background:#fff;border:1px dashed #d8c58c;border-radius:5px;padding:3px 8px;margin:2px 0 4px}
 .a3grid1{display:block}
 .a3slimhead{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--cyan);padding-bottom:8px;margin-bottom:15px;gap:10px;flex-wrap:wrap}
 .a3slimttl{font-size:15.5px;color:var(--dark);font-weight:bold}
@@ -611,7 +613,7 @@ body>*{display:none!important}
     </div>
     <div class="row" style="gap:8px;margin-top:10px"><span class="muted">対象期間</span><input type="date" id="periodFrom"><span class="muted">〜</span><input type="date" id="periodTo"><span class="row" style="gap:6px;margin-left:14px"><span class="muted">🎯 採用目標人数</span><input type="number" min="0" id="v_target" placeholder="名" style="width:80px;text-align:center"><span class="muted">名</span></span><span class="row" style="gap:6px;margin-left:14px"><span class="muted">1人採用の価値</span><input type="number" min="0" id="hireVal" placeholder="例:800000" style="width:110px;text-align:center"><span class="muted">円</span></span></div>
     <div class="row" style="gap:8px;margin-top:8px"><span class="muted" style="font-weight:bold;color:var(--ink)">評価基準</span><select id="evalBasis"><option value="auto">自動（期間中＝ペース評価／終了後＝確定実績）</option><option value="pace">期間途中：ペース評価（目標を経過率で按分）</option><option value="final">期間満了：確定実績で評価</option></select><span id="paceInfo" class="muted"></span></div>
-    <div class="muted" style="margin-top:6px">この期間・職種の採用を診断します。採用目標人数は結果の「実現度（達成率）」の基準になります。</div>
+    <div class="muted" style="margin-top:6px">対象期間＝<b>実績を集計する期間</b>です（例：今期の採用活動期間）。終了日が未来の場合は「ペース評価」で途中経過を採点します。採用目標人数は「実現度」の基準。<b>最小入力は前提＋選考数値のみでOK</b>（ヒアリング・AI分析は精度向上用）。選考フロー（書類・二次の有無など）は下の「選考プロセス設定」で変更できます。</div>
   </div>
 
   <div class="sec">重点施策の有無（採用サイト・採用ピッチ・クロージング）</div>
@@ -855,9 +857,9 @@ var STP=["#DDEAF8","#D2F0EC","#E8E3F6","#FBEDD3","#FAE1EA"];
 var hpoints=[
  {pts:["主な応募経路と実績","狙った層から応募が来ているか","スカウト・エージェントの手応え"],
   ex:["例：マイナビ転職が中心。月の応募は約30名。エージェント経由が月10名程度。","例：経験者は少なめで、異業種・未経験からの応募が多い。","例：スカウトの返信率は3%前後。エージェントは推薦はあるが決定は少ない。"]},
- {pts:["採用サイトの更新頻度・スマホ対応","求人の訴求はターゲットに刺さっているか","「応募はくるが層が違う」実感はあるか"],
+ {pts:["採用サイトの更新頻度・スマホ対応","求人・訴求はターゲットに刺さっているか（＝志望理由が明確な候補者が多いか）","「応募はくるが層が違う」実感はあるか"],
   ex:["例：退職者が出たタイミングで更新。スマホ対応済みだが情報はやや古い。","例：仕事内容中心で、働く環境・成長・キャリアの訴求が弱い。","例：応募はあるが、書類で半数以上が見送りになっている。"]},
- {pts:["応募〜初回連絡のスピード","面接官の惹きつけ・体制","選考中に辞退される理由を把握できていますか？"],
+ {pts:["応募（エントリー）〜初回連絡（面接・面談のご案内）までのスピード","面接官の惹きつけ・体制","選考中に辞退される理由を把握できていますか？"],
   ex:["例：担当により差があり、2〜3営業日かかることがある。","例：現場任せで、面接官により魅力づけにばらつきがある。","例：辞退理由は個別に聞けておらず、他社決定が多い印象。"]},
  {pts:["辞退理由で多いもの（競合／条件／家族）","オファー面談・条件提示の仕方","クロージング施策の有無"],
   ex:["例：他社competingと年収・条件面が多い。","例：内定通知のみで、対面のオファー面談は行っていない。","例：特になし。条件提示のみで意思確認している。"]},
@@ -865,11 +867,11 @@ var hpoints=[
   ex:["例：OJT中心で、体系的なオンボーディングは未整備。","例：入社1年以内の離職が一定数ある。","例：制度はなく、社員紹介はほとんど発生していない。"]}
 ];
 var steps=[
- {name:"認知される",tog:["媒体プラン上位","スカウト配信","エージェント視点での条件良","SNS","採用サイトからの応募流入"],on:[1,0,0,0,1],crit:["主要媒体で上位掲載・特集枠を活用できている状態","スカウト／ダイレクトを定期運用し返信が来ている状態","紹介会社が推薦しやすい条件・関係を築けている状態","採用目的のSNS発信を継続できている状態","自社採用サイト経由の応募が一定数ある状態"]},
- {name:"惹きつける",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用ピッチ資料","採用動画","ターゲット視点での条件良"],on:[1,1,0,0,0],crit:["社員ストーリー／数字／仕事内容が具体的に載っている状態","ターゲットに刺さる訴求・キャッチが設計されている状態","会社の魅力・方針をまとめた採用ピッチ資料がある状態","仕事や社員が伝わる採用動画を用意できている状態","狙う層にとって条件（給与／働き方）が競合と戦える状態"]},
- {name:"信頼を築く",tog:["応募への即時対応","面接調整の即連絡","面接官の惹きつけ良","惹きつけシナリオの標準化","候補者フォロー良"],on:[1,1,0,0,0],crit:["応募から初回連絡まで概ね1営業日以内で対応できている状態","日程調整の連絡が滞りなく即対応できている状態","面接官が魅力づけ・動機形成を意識できている状態","誰が面接しても魅力を伝えられる型（シナリオ）がある状態","選考中の不安を解消するフォローができている状態"]},
+ {name:"認知される",tog:["媒体プラン上位","スカウト配信","エージェント視点での条件良","SNS","採用サイトからの応募流入"],on:[0,0,0,0,0],crit:["主要媒体で上位掲載・特集枠を活用できている状態","スカウト／ダイレクトを定期運用し返信が来ている状態","紹介会社が推薦しやすい条件・関係を築けている状態","採用目的のSNS発信を継続できている状態","自社採用サイト経由の応募が一定数ある状態"]},
+ {name:"惹きつける",tog:["キャリア採用サイトの充実","求人の魅力が明確","採用ピッチ資料","採用動画","ターゲット視点での条件良"],on:[0,0,0,0,0],crit:["社員ストーリー／数字／仕事内容が具体的に載っている状態","ターゲットに刺さる訴求・キャッチが設計されている状態","会社の魅力・方針をまとめた採用ピッチ資料がある状態","仕事や社員が伝わる採用動画を用意できている状態","狙う層にとって条件（給与／働き方）が競合と戦える状態"]},
+ {name:"信頼を築く",tog:["応募への即時対応","面接調整の即連絡","面接官の惹きつけ良","惹きつけシナリオの標準化","候補者フォロー良"],on:[0,0,0,0,0],crit:["応募から初回連絡まで概ね1営業日以内で対応できている状態","日程調整の連絡が滞りなく即対応できている状態","面接官が魅力づけ・動機形成を意識できている状態","誰が面接しても魅力を伝えられる型（シナリオ）がある状態","選考中の不安を解消するフォローができている状態"]},
  {name:"決断を促す",tog:["クロージングシナリオ（勝ちパターン）","オファーレター","クロージングブック","家族対策","オファー面談"],on:[0,0,0,0,0],crit:["承諾に向けた勝ちパターンが言語化・共有されている状態","条件だけでなく期待・想いを伝えるレターがある状態","入社の不安を払拭する資料（実績／環境）がある状態","本人だけでなく家族の不安に配慮した打ち手がある状態","内定後に条件・期待をすり合わせる面談を実施している状態"]},
- {name:"活躍を支える",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[1,0,0,0,0],crit:["入社初期の立ち上がりを支援するプログラムがある状態","入社後に定期的な面談でフォローできている状態","早期離職が少なく定着している状態","社員紹介（リファラル）が生まれる仕組み・実績がある状態","中途入社者の活躍事例・ロールモデルがある状態"]}
+ {name:"活躍を支える",tog:["オンボーディング","入社後の人事面談","定着率良","リファラル促進","キャリア入社活躍モデルあり"],on:[0,0,0,0,0],crit:["入社初期の立ち上がりを支援するプログラムがある状態","入社後に定期的な面談でフォローできている状態","早期離職が少なく定着している状態","社員紹介（リファラル）が生まれる仕組み・実績がある状態","中途入社者の活躍事例・ロールモデルがある状態"]}
 ];
 /* 各ファネルkeyがどのFANサイクルステップに属するか */
 var KEYSTEP={apply:0,attend:1,doc:1,casual:2,i1:2,i2:2,i3:2,final:2,offer:3,accept:3};
@@ -1475,7 +1477,7 @@ function renderLite(){var host=document.getElementById("liteQ");if(!host)return;
 }
 
 /* ===== 報告書（PDF出力用） ===== */
-function radarScoreSVG(sc){var n=5,cx=230,cy=162,R=112,max=100;
+function radarScoreSVG(sc){var n=5,cx=230,cy=158,R=102,max=100;
  function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
  var s='<svg viewBox="0 0 460 336" width="100%" style="max-width:460px;display:block;margin:4px auto">';
  [20,40,60,80,100].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="#e3ebf0"/>';});
@@ -1531,7 +1533,8 @@ function a3PlanCards(order){var d=getAI();var pp=(d&&d.proposals)||{};return '<d
  else if((R.targetUp||R.volDriven)&&i===0){issue=(R.underTarget?'目標に対し応募・面接（母集団）が不足':'目標は達成も母集団（応募数）が市場標準比で薄い')+'（必要応募〈市場標準〉約'+R.reqApply+'名／現状 '+R.apply+'名'+(R.interviewGap>0?'・面接 約'+R.interviewGap+'名不足':'')+'）';cause=R.underTarget?'ターゲット設定が曖昧で、狙う層へリーチできていない（＋立地/規模の不利）':'少数の応募を高い通過率（エージェント依存など）で採れており、母集団形成が手薄＝再現性・スケールにリスク';solve='ターゲット（求める人物像）を明確化し、狙う層へ届く媒体・スカウト・エージェントに最適化して母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx]||'順次')+'</span></div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+extra+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ var why=(R.noSite&&i===1)?'採用サイト未整備（重点施策なし）のため強制的に優先':(R.noPitch&&i===1)?'採用ピッチ資料なしのため優先':((R.targetUp||R.volDriven)&&i===0)?'母集団が必要水準を下回るため強制的に優先':(R.noClosing&&i===3)?'クロージングツールなしのため優先':('スコア'+R.sc[i]+'点（5段階中の低い順）');
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'<div class="a3pmemo" style="background:#fff7e6">🗒 この段階はヒアリング未入力＝数値のみで判定（メモを記入すると課題・解決策の精度が上がります）</div>')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+extra+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
@@ -1576,7 +1579,11 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  atiCard+='<div class="a3kpiblk" style="border-left:5px solid '+atCol+'"><span class="a3kpitag" style="background:#0089c4">候補者判断</span><div class="a3kpil">'+(R.docOn?('書類通過→'+kLblB+'参加率'):(kLblA+'→'+kLblB+'参加率'))+'（志望度）</div><div class="a3kpibig" style="color:'+atCol+'">'+R.attendRate+'<small>%</small></div><div class="muted">目安 '+R.attendBench+'% ／ 辞退 '+R.drop+'名（候補者都合）</div></div>';
  atiCard+='</div><div class="a3kpinote"><b>候補者判断（志望度）：</b>'+esc(atNote)+'</div>'+(R.docOn?'<div class="a3kpinote2"><b>会社判断（絞り込み）：</b>書類不合格はターゲット外の見送り。多い場合はターゲット設定・訴求のずれ（①認知・②惹きつけ）で応募の質を高める余地。志望度とは切り分けて評価します。</div>':'')+'</div>';
  var curveCard='<div class="a3card"><h4>到達度カーブ（現状 vs 理想）</h4>'+chartSVG(sc)+'<div class="a3cols">'+names.map(function(n,i){var l=lv(sc[i]);return '<div><b style="color:'+STC[i]+'">'+n+'</b><br><span style="color:'+l[1]+'">'+l[0]+' '+sc[i]+'</span></div>';}).join("")+'</div></div>';
- var radarCard='<div class="a3card"><h4>選考歩留まり（質）スコア｜FANサイクル 5段階</h4>'+radarScoreSVG(sc)+'</div>';
+ var basisTxt='<div class="a3basis"><b>スコアの読み方</b>：各点数＝貴社の実績 ÷ 市場目安 ×100（上限100）。<b>100点＝市場目安をクリア</b>という意味で、改善余地ゼロではありません。<br>'
+  +'<b>①認知</b>＝母集団の充足度（必要応募 約'+R.reqApply+'名に対し '+R.apply+'名）　<b>②惹きつける</b>＝'+(R.docOn?'書類通過→':'応募→')+(isShin()?'一次選考':'面接')+'参加率 '+R.attendRate+'%（目安'+R.attendBench+'%）<br>'
+  +'<b>③信頼</b>＝面接→内定率（目安との比較）　<b>④決断</b>＝内定→承諾率 '+Math.round(R.accRate*100)+'%（目安比較'+(R.noClosing?'・クロージングツール無しのため上限60点':'')+'）　<b>⑤活躍</b>＝定性評価（固定60点・参考）'
+  +((R.small&&R.small.length)?'<br><span style="color:#b26a00">※分母5名未満の転換（'+R.small.join('、')+'）は参考値です</span>':'')+'</div>';
+ var radarCard='<div class="a3card"><h4>選考歩留まり（質）スコア｜FANサイクル 5段階</h4>'+radarScoreSVG(sc)+basisTxt+'</div>';
  var rv=d&&d.reviews,selfCats=(rv&&rv.categories)?rv.categories.filter(function(c){return c&&c.name&&c.score;}):[];
  var comp2=d&&d.competitor,rivalCats=(comp2&&comp2.categories)?comp2.categories.filter(function(c){return c&&c.name;}):[];
  var hasRival=(getUrls("rivalUrls").length>0||mrev2Filled())&&rivalCats.length>=3&&selfCats.length>=3;
@@ -1620,11 +1627,12 @@ function printReport(){
  var mm2px=96/25.4,innerW=(420-20)*mm2px,innerH=(296-18)*mm2px; /* A3横 用紙内寸（左右10mm・上下9mm、用紙高は296mmでスピル防止） */
  var saved=sheets.map(function(s){return[s,s.style.width,s.style.maxWidth,s.style.transform,s.style.transformOrigin];});
  sheets.forEach(function(s){
-  /* 印刷の実寸で自然高さを測定→縮尺算出→transformで収める（zoom不使用） */
+  /* 実寸で自然高さを測定。短いページは拡大（最大1.22倍）してA3全面を使い、長いページは縮小して収める */
   s.style.maxWidth='none';s.style.width=innerW+'px';s.style.transform='none';s.style.transformOrigin='top left';
-  var nh=s.scrollHeight,nw=s.scrollWidth||innerW;
-  var sc=Math.min(1,innerW/nw,innerH/nh);sc=Math.max(0.55,Math.floor(sc*1000)/1000);
-  s.style.transform='scale('+sc+')';
+  var nh=s.scrollHeight;
+  var s0=Math.min(1.22,innerH/nh);s0=Math.max(0.55,Math.floor(s0*1000)/1000);
+  if(s0>1){s.style.width=(innerW/s0)+'px';var nh2=s.scrollHeight;var s1=Math.min(s0,innerH/nh2);s1=Math.max(1,Math.floor(s1*1000)/1000);if(s1<s0){s.style.width=(innerW/s1)+'px';}s0=s1;}
+  s.style.transform='scale('+s0+')';
  });
  var cleanup=function(){saved.forEach(function(o){o[0].style.width=o[1];o[0].style.maxWidth=o[2];o[0].style.transform=o[3];o[0].style.transformOrigin=o[4];});if(wrap)wrap.style.maxWidth=pwMax;window.removeEventListener('afterprint',cleanup);};
  window.addEventListener('afterprint',cleanup);
