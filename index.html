@@ -673,9 +673,11 @@ body>*{display:none!important}
 
   <div class="sec prep-only">口コミ本文の貼り付け（ログイン必須サイト対応・任意）</div>
   <div class="card prep-only">
-    <div class="muted" style="margin-bottom:7px">OpenWork・ワンキャリア等の<b>ログインして見ているページ</b>はAIが読めません。下の<b>「📋 口コミ一括コピー」をブックマークバーへドラッグ</b>し、口コミページ上でクリック→本文が自動コピーされるので、ここに1回貼るだけでOK（複数ページ分は続けて追記可）。AI分析で<b>最優先の口コミ根拠</b>として使われます。</div>
-    <div class="row" style="margin-bottom:7px"><a class="btn" href="javascript:(function(){var t=document.body.innerText.replace(/\n{3,}/g,'\n\n').slice(0,20000);navigator.clipboard.writeText(t).then(function(){alert('このページの本文をコピーしました（'+t.length+'文字）。FAN採用診断の「口コミ本文の貼り付け」欄に貼ってください。');});})();" onclick="alert('このボタンはクリックせず、ブックマークバーへドラッグして登録してください。口コミページ上でそのブックマークを押すと本文がコピーされます。');return false;">📋 口コミ一括コピー（ブックマークバーへドラッグ）</a></div>
-    <textarea id="rvPaste" placeholder="ここに貼り付け（総合評価・カテゴリ点数・口コミ本文など。複数サイト分を続けて貼ってもOK）" style="width:100%;height:90px" oninput="recompute()"></textarea>
+    <div class="muted" style="margin-bottom:9px">OpenWork・ワンキャリア等の<b>ログインして見ているページ</b>はAIが直接読めないため、コピーして貼り付けます。やり方は簡単です：</div>
+    <div class="row" style="gap:14px;margin-bottom:9px;flex-wrap:wrap"><span class="row" style="gap:7px"><span class="badge">1</span>口コミページを開く（ログインしたままでOK）</span><span class="row" style="gap:7px"><span class="badge">2</span>そのページで <b>Ctrl＋A</b>（全選択）→ <b>Ctrl＋C</b>（コピー）</span><span class="row" style="gap:7px"><span class="badge">3</span>下の欄をクリックして <b>Ctrl＋V</b>（貼り付け）</span></div>
+    <div class="muted" style="margin-bottom:6px">※ページ全体をそのまま貼ってOK（余計なメニュー等はAIが無視します）。複数サイト・複数ページ分は続けて貼り足してください。</div>
+    <textarea id="rvPaste" placeholder="ここに貼り付け（総合評価・カテゴリ点数・口コミ本文など。複数サイト分を続けて貼ってもOK）" style="width:100%;height:90px" oninput="var _m=document.getElementById('rvpMsg');if(_m)_m.innerHTML=this.value.trim()?'<b style=&quot;color:var(--ok)&quot;>✔ '+this.value.trim().length+'文字を取り込みました</b>（AI分析で最優先の口コミ根拠として使われます）':'';recompute()"></textarea>
+    <div id="rvpMsg" class="muted" style="margin-top:5px"></div>
   </div>
 
   <div class="sec prep-only">競合の関連URL（比較対象・任意）</div>
