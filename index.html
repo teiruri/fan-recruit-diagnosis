@@ -226,6 +226,11 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3ctaband>b{font-size:19px}
 .a3ctaband .a3agenda{font-size:16px;line-height:1.8}
 .a3ctatxt{font-size:16px}
+.a3plancards{align-items:stretch}
+.a3plancard{display:flex;flex-direction:column}
+.a3plancard .a3psvc{margin-top:auto!important}
+.a3fill .a3plan{display:flex;flex-direction:column}
+.a3fill .a3plan>.a3plancards{flex:1}
 /* === A3 2枚構成・プロ品質タイポ（拡大） === */
 .a3page{box-shadow:0 3px 14px rgba(10,42,58,.10);border:1px solid #e3e9ed;border-radius:4px;margin:0 auto 22px;padding:12px 16px}
 .a3pgno{font-size:12.5px;font-weight:bold;color:#04222e;background:var(--cyan);border-radius:6px;padding:2px 11px;vertical-align:4px;margin-left:12px;letter-spacing:.04em}
@@ -292,7 +297,7 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3p2 .svcwhy,.a3p2 .svcct{margin-top:7px}
 .a3p2 .svcwhy>b,.a3p2 .svcct>b{font-size:11px;padding:2px 8px}
 .a3p2 .svcwhy ol,.a3p2 .svcct ul{font-size:12.5px;line-height:1.5;padding-left:19px;margin-top:3px}
-.a3ctaband{background:linear-gradient(120deg,#0A2A3A,#15607D);color:#eaf6fb;border-radius:11px;padding:12px 18px;margin-top:6px;border-left:6px solid var(--cyan)}
+.a3ctaband{background-color:#0A2A3A;background-image:linear-gradient(120deg,#0A2A3A,#15607D);color:#eaf6fb;border-radius:11px;padding:12px 18px;margin-top:6px;border-left:6px solid var(--cyan)}
 .a3ctaband>b{font-size:17px;color:#bfe9f8}
 .a3ctaband .a3agenda{font-size:14px;line-height:1.7;margin:6px 0 0;padding-left:24px}
 .a3ctatxt{font-size:14.5px;line-height:1.7;margin-top:7px}
@@ -1646,10 +1651,11 @@ function printReport(){
  var saved=sheets.map(function(s){return[s,s.style.width,s.style.maxWidth,s.style.transform,s.style.transformOrigin];});
  sheets.forEach(function(s){
   /* 実寸で自然高さを測定。短いページは拡大（最大1.22倍）してA3全面を使い、長いページは縮小して収める */
-  s.style.maxWidth='none';s.style.width=innerW+'px';s.style.transform='none';s.style.transformOrigin='top left';
-  var nh=s.scrollHeight;
-  var s0=Math.min(1.35,innerH/nh);s0=Math.max(0.55,Math.floor(s0*1000)/1000);
-  if(s0>1){s.style.width=(innerW/s0)+'px';var nh2=s.scrollHeight;var s1=Math.min(s0,innerH/nh2);s1=Math.max(1,Math.floor(s1*1000)/1000);if(s1<s0){s.style.width=(innerW/s1)+'px';}s0=s1;}
+  /* 幅・高さの両方にフィット：縮小時も横幅いっぱいに再流し込み（左寄り・右余白を解消）。反復で収束 */
+  s.style.maxWidth='none';s.style.transform='none';s.style.transformOrigin='top left';
+  var s0=1;
+  for(var it=0;it<4;it++){s.style.width=(innerW/s0)+'px';var nh=s.scrollHeight;var sn=Math.min(1.35,innerH/nh);sn=Math.max(0.55,Math.floor(sn*1000)/1000);if(Math.abs(sn-s0)<0.005){s0=sn;break}s0=sn;}
+  s.style.width=(innerW/s0)+'px';
   s.style.transform='scale('+s0+')';s.classList.add('a3fill');s.style.minHeight=(innerH/s0)+'px';
  });
  var cleanup=function(){saved.forEach(function(o){o[0].style.width=o[1];o[0].style.maxWidth=o[2];o[0].style.transform=o[3];o[0].style.transformOrigin=o[4];o[0].classList.remove('a3fill');o[0].style.minHeight='';});if(wrap)wrap.style.maxWidth=pwMax;window.removeEventListener('afterprint',cleanup);};
