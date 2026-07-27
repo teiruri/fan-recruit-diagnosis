@@ -1641,11 +1641,11 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var ctaBand='<div class="a3ctaband"><b>🤝 次回ご提案</b>'+(nmA3.length?'<ol class="a3agenda">'+nmA3.map(function(a){return '<li>'+esc(a)+'</li>';}).join('')+'</ol>':'<div class="a3ctatxt">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div>')+(nmHook3?'<div class="a3ctatxt">'+esc(nmHook3)+'</div>':'')+'</div>';
  var footLogic='<div class="a3foot"><b>診断ロジック</b>：選考各段階の到達度＝「市場ベンチマーク（当社の採用支援実績＋主要'+(isShin()?'新卒':'転職')+'市場データに基づく段階別水準）」×「貴社の実績歩留まり」で算出。総合採用力＝選考の質（歩留まり）×'+(R.paceMode?'目標達成ペース（量）':'目標達成（量）')+'。<b>評価基準：'+(R.progKnown?('期間進捗 '+R.progPct+'%時点の'+(R.paceMode?'ペース評価（目標・必要母集団を経過率で按分）':'期間確定実績')):'期間未設定のため累計実績')+'</b>。分母5名未満の転換は参考値。口コミは全社（職種横断）の公開評価に基づく参考値です。<br>本診断は無料の参考値です。株式会社カケハシスカイ　TEL:0120-342-834　監修：'+AUTHOR+'　診断日 '+today+'</div>';
  var pages=[];
- pages.push({sub:'総合診断サマリ',full:true,body:twoCol([execCard,discCard],[atiCard,goalCard])});
- pages.push({sub:'選考ファネル詳細',body:twoCol([radarCard,leakCard],[curveCard,funnelCard])});
+ pages.push({sub:'総合診断サマリ（総合評価・診断コメント）',full:true,body:twoCol([execCard],[discCard])});pages.push({sub:'総合診断サマリ（実現度・目標と前提）',body:twoCol([atiCard],[goalCard])});
+ pages.push({sub:'選考ファネル詳細（スコア内訳・歩留まり分析）',body:twoCol([radarCard],[leakCard])});pages.push({sub:'選考ファネル詳細（実現度・数値ファネル）',body:twoCol([curveCard],[funnelCard])});
  var p3L=[rvCard,compLossCard,memoCard].filter(Boolean),p3R=[tgtCard,volCard].filter(Boolean);
  if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',body:twoCol(p3L,p3R)});
- pages.push({sub:'アクションプラン・ご提案',last:true,body:planBand+designBand+ctaBand+footLogic});
+ if(designBand){pages.push({sub:'アクションプラン（優先課題と解決策）',body:planBand});pages.push({sub:'施策の設計指針・次回ご提案',last:true,body:designBand+ctaBand+footLogic});}else{pages.push({sub:'アクションプラン・ご提案',last:true,body:planBand+ctaBand+footLogic});}
  var tot=pages.length,html='';
  pages.forEach(function(pg,ix){var no=ix+1;
   html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
