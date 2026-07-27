@@ -644,6 +644,30 @@ body>*{display:none!important}
 .a3fill .a3plancards{flex:1;align-items:stretch}
 .a3fill .a3dxg{align-items:stretch}
 .a3fill .a3tiles,.a3fill .a3scstrip{align-items:stretch}
+
+/* v4: 総括カードの背景ベタ塗りフォールバック＋視認性 */
+.a3page .a3card.a3exec{background-color:#0A2A3A;background-image:linear-gradient(120deg,#0A2A3A,#15607D);color:#eef8fd;border:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.a3page .a3card.a3exec h4{color:#fff;border-left-color:#57C4F2;border-bottom-color:rgba(255,255,255,.28)}
+.a3exec .a3exrow>b{color:#57C4F2;font-weight:bold}
+.a3exec .a3exhead{background:rgba(255,255,255,.10);border-left:4px solid #57C4F2;border-radius:8px;padding:12px 16px;margin-bottom:10px}
+/* ページの位置づけ帯 */
+.a3purpose{display:flex;gap:14px;align-items:center;background:#EAF4F9;border:1px solid #cfe4ef;border-radius:10px;padding:10px 16px;margin:0 0 16px;font-size:14.5px;line-height:1.6;-webkit-print-color-adjust:exact}
+.a3purpose>b{background:#0A2A3A;color:#fff;border-radius:6px;padding:4px 12px;font-size:13px;white-space:nowrap;-webkit-print-color-adjust:exact}
+/* ステップ別フィードバック帯 */
+.a3steps{display:flex;flex-direction:column;gap:14px}
+.a3stepband{display:grid;grid-template-columns:230px 330px 1fr;gap:20px;background:#fff;border:1px solid #d8e1e8;border-left:6px solid #0089C4;border-radius:12px;padding:14px 18px;align-items:start;box-shadow:0 1px 3px rgba(10,42,58,.06)}
+.sbL>div:first-child{display:flex;align-items:center;margin-bottom:4px}
+.sbL b{font-size:16.5px}
+.sbnum{display:inline-flex;width:25px;height:25px;border-radius:50%;color:#fff;align-items:center;justify-content:center;font-weight:bold;margin-right:9px;font-size:13.5px;-webkit-print-color-adjust:exact}
+.sbsc{font-size:30px;font-weight:800;line-height:1.2}
+.sbsc small{font-size:13px}
+.sbL i{font-style:normal;font-size:13px;color:#7a8791;margin-left:7px}
+.sbK{background:#F4F9FC;border-radius:8px;padding:11px 15px;-webkit-print-color-adjust:exact}
+.sbK>b{display:block;font-size:16px;color:#0A2A3A;line-height:1.5;margin-bottom:3px}
+.sbK>span{font-size:13px;color:#51616c;line-height:1.55;display:block}
+.sbmemo{font-size:13.5px;color:#51616c;line-height:1.65;margin-bottom:7px;background:#FBF7EE;border-radius:6px;padding:8px 12px;-webkit-print-color-adjust:exact}
+.sbcmt{font-size:14.5px;line-height:1.7}
+.a3fill .a3steps{flex:1;justify-content:space-between}
 </style>
 </head>
 <body>
@@ -1626,7 +1650,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
  var gv=(R.total!=null)?R.total:R.ov,g=grade(gv),gl=lv(gv),sc=R.sc,low=R.low,d=getAI(),pbl=pbStep(low)[0];
- var moneyExec=(R.hv>0&&R.impHi>0)?('（約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'）'):'';
+ var moneyExec='';
  var a3qxq=(R.quant!=null)?('<div class="a3exrow"><b>質×量</b><span>選考の質（歩留まり）<b>'+R.ov+'</b>点（'+grade(R.ov)[0]+'）× 目標達成（量）<b>'+R.quant+'</b>%（'+grade(R.quant)[0]+'）</span></div>'):'';
  var a3imp=(R.targetUp||R.volDriven)?('母集団を必要水準（応募 約'+R.reqApply+'名）へ増やせば 目標 '+R.target+'名 達成が視野'):('承諾 +'+R.impLo+'〜+'+R.impHi+'名 '+moneyExec);
  var memoCard='',anyMemo=[0,1,2,3,4].some(function(i){return stepMemos(i).length;});
@@ -1642,16 +1666,16 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  // COL1
  var dIt=[];
  if(R.gap){(R.gap.agree||[]).filter(Boolean).slice(0,1).forEach(function(x){dIt.push(['共感','#1f9e6a',x]);});(R.gap.blind||[]).filter(Boolean).slice(0,2).forEach(function(x){dIt.push(['盲点','#d8453c',x]);});(R.gap.surprise||[]).filter(Boolean).slice(0,2).forEach(function(x){dIt.push(['意外','#d98a0c',x]);});}
- (R.facts||[]).slice(0,2).forEach(function(x){dIt.push(['データ','#0089c4',x]);});
+ (R.facts||[]).filter(function(x){return (x||'').indexOf('万円')<0;}).slice(0,2).forEach(function(x){dIt.push(['データ','#0089c4',x]);});
  var discCard=dIt.length?'<div class="a3card"><h4>💡 本日の発見（担当者様の実感 × 客観データ）</h4><div class="a3disc">'+dIt.map(function(it){return '<div class="a3disci"><b style="background:'+it[1]+'">'+it[0]+'</b><span>'+esc(it[2])+'</span></div>';}).join('')+'</div></div>':'';
  var wSm=(R.worst>=0&&(R.small||[]).some(function(s){return s.indexOf(R.worstFrom+'→'+R.worstTo)===0;}))?'<small style="opacity:.8">（少数サンプル参考値）</small>':'';
  var quantLbl3=R.paceMode?('目標達成ペース（量・進捗'+R.progPct+'%）'):'目標達成（量）';
  var a3qxq2=(R.quant!=null)?('<div class="a3exrow"><b>質×量</b><span>選考の質（歩留まり）<b>'+R.ov+'</b>点（'+grade(R.ov)[0]+'）× '+quantLbl3+'<b>'+R.quant+'</b>%（'+grade(R.quant)[0]+'）'+(R.paceMode?'　／期末見込み 承諾約'+R.projAccept+'名':'')+'</span></div>'):'';
- var a3head1='貴社の'+recruitTitle()+'力は総合 <b>'+gv+'点（'+g[1]+'）</b>。'+(R.worst>=0?'最大のボトルネックは「'+R.worstFrom+'→'+R.worstTo+'」。':'')+(R.gapLoss>0?((R.paceMode?'現状ペースの期末見込みで不足 ':'目標未達 ')+R.gapN+'名＝約<b>'+yen(R.gapLoss)+'</b>の機会損失'+(R.paceMode?'（見込み）':'')+'。'):'')+'最優先は「'+steps[low].name+'」の強化です。';
+ var a3head1='貴社の'+recruitTitle()+'力は総合 <b>'+gv+'点（'+g[1]+'）</b>。'+(R.worst>=0?'最大のボトルネックは「'+R.worstFrom+'→'+R.worstTo+'」。':'')+(R.gapLoss>0?((R.paceMode?'現状ペースの期末見込みで不足 ':'目標未達 ')+R.gapN+'名。'):'')+'最優先は「'+steps[low].name+'」の強化です。';
  var execCard='<div class="a3card a3exec"><h4>総括（エグゼクティブサマリー）</h4><div class="a3exhead">'+a3head1+'</div>'+
   '<div class="a3exrow"><b>総合採用力</b><span style="font-weight:bold;color:'+egColor(gv)+'">'+g[0]+' '+gv+'点（'+g[1]+'）</span></div>'+a3qxq2+
-  '<div class="a3exrow"><b>最大の機会損失</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt'+wSm:'')+'</span></div>'+
-  ((R.gapLoss>0)?'<div class="a3exrow"><b>経営インパクト</b><span>'+(R.paceMode?'期末見込みで不足 ':'目標未達 ')+R.gapN+'名 ＝ 約<b style="color:#ffd98a">'+yen(R.gapLoss)+'</b> の機会損失'+(R.paceMode?'（見込み）':'')+'</span></div>':'')+
+  '<div class="a3exrow"><b>最大のボトルネック</b><span>'+steps[low].name+'（'+sc[low]+'点）'+(R.worst>=0?'／「'+R.worstFrom+'→'+R.worstTo+'」が目安−'+Math.max(0,R.wb-R.wpc)+'pt'+wSm:'')+'</span></div>'+
+  
   '<div class="a3exrow"><b>改善インパクト</b><span>'+a3imp+'</span></div>'+
   '<div class="a3exrow"><b>次にやるべき1手</b><span>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」</span></div></div>';
  // COL2
@@ -1685,7 +1709,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
   tgtCard='<div class="a3card"><h4>ターゲット要件・採用難易度</h4>'+(R.tmust?'<div class="a3tgtreq"><b class="treqmust">MUST</b>'+esc(R.tmust)+'</div>':'')+(R.twant?'<div class="a3tgtreq"><b class="treqwant">WANT</b>'+esc(R.twant)+'</div>':'')+((R.tdiff||R.trarity)?'<div class="a3tgtdiff">'+(R.tdiff?'採用難易度 <b style="color:'+tdCol+'">★'+R.tdiff+'・'+esc((R.tA&&R.tA.difficultyLabel)||diffLabel(R.tdiff))+'</b>':'')+(R.trarity?'　／　希少性 <b style="color:'+trCol+'">★'+R.trarity+'・'+esc((R.tA&&R.tA.rarityLabel)||rarityLabel(R.trarity))+'</b>':'')+'</div>':'')+((R.tA&&R.tA.summary)?'<div style="font-size:10.5px;line-height:1.5;margin-top:3px">'+esc(R.tA.summary)+'</div>':'')+((R.tA&&R.tA.requiredMove)?'<div class="a3tgtmv">🎯 採り方：'+esc(R.tA.requiredMove)+'</div>':'')+((R.tA&&R.tA.mustReview)?'<div class="a3tgtmv" style="background:#fff7e6;border-color:#f0d9a8">📝 MUST見直し：'+esc(R.tA.mustReview)+'</div>':'')+'</div>';}
  var goalCard='';
  if(R.target>0){var acc=vals.accept||0,rate=Math.round(acc/R.target*100),rcol=rate>=100?"#1f9e6a":rate>=70?"#0089c4":rate>=40?"#d98a0c":"#d8453c";
-  goalCard='<div class="a3card"><h4>採用目標に対する実現度</h4><div style="font-size:12px">目標 <b>'+R.target+'</b>名 ／ 現状 <b>'+acc+'</b>名</div><div class="goalbar" style="margin-top:5px"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div><div style="margin-top:4px;font-weight:bold;color:'+rcol+'">達成率 '+rate+'%'+(R.impHi>0?'（打ち手で '+Math.round((acc+R.impLo)/R.target*100)+'〜'+Math.round((acc+R.impHi)/R.target*100)+'%へ）':'')+'</div>'+(R.hv>0&&R.impHi>0?'<div style="font-size:11px;color:#0089c4;margin-top:3px">改善インパクト 約'+yen(R.impLo*R.hv)+'〜'+yen(R.impHi*R.hv)+'</div>':'')+(R.paceMode?'<div style="font-size:11px;color:#5a6b75;margin-top:3px">📅 期間進捗 '+R.progPct+'%時点：ペース達成率 <b>'+R.quant+'%</b>／期末見込み 約<b>'+R.projAccept+'</b>名</div>':'')+'</div>';}
+  goalCard='<div class="a3card"><h4>採用目標に対する実現度</h4><div style="font-size:12px">目標 <b>'+R.target+'</b>名 ／ 現状 <b>'+acc+'</b>名</div><div class="goalbar" style="margin-top:5px"><div class="goalfill" style="width:'+Math.min(100,Math.max(2,rate))+'%;background:'+rcol+'"></div></div><div style="margin-top:4px;font-weight:bold;color:'+rcol+'">達成率 '+rate+'%'+(R.impHi>0?'（打ち手で '+Math.round((acc+R.impLo)/R.target*100)+'〜'+Math.round((acc+R.impHi)/R.target*100)+'%へ）':'')+'</div>'+(R.paceMode?'<div style="font-size:11px;color:#5a6b75;margin-top:3px">📅 期間進捗 '+R.progPct+'%時点：ペース達成率 <b>'+R.quant+'%</b>／期末見込み 約<b>'+R.projAccept+'</b>名</div>':'')+'</div>';}
  var volCard='';
  if(R.volShort||R.targetUp){volCard='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">'+(R.underTarget?'目標達成に必要な応募':'目標達成に必要な母集団')+'（市場標準の通過率で逆算）約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol">'+(R.underTarget?'<b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。':'<b>目標は達成していますが、母集団は市場標準に対して薄い状態</b>です（少数の応募を高い通過率＝エージェント依存などで採れている＝再現性・スケールにリスク）。')+'①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
  /* ===== A3横 × 複数ページ組版（大判タイポ・1テーマ1ページ） ===== */
@@ -1705,7 +1729,6 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  if(R.quant!=null)tiles+='<div class="a3tile" style="border-top-color:'+egColor(R.quant)+'"><div class="tl">'+(R.paceMode?'目標達成ペース（量）':'目標達成（量）')+'</div><div class="tv" style="color:'+egColor(R.quant)+'">'+R.quant+'<small>%</small></div><div class="ts">目標'+R.target+'名／現状 承諾'+acc2+'名'+(R.paceMode?'・期末見込 約'+R.projAccept+'名':'')+'</div></div>';
  tiles+='<div class="a3tile" style="border-top-color:'+setCol2+'"><div class="tl">'+kLblA+'→'+kLblB+'設定率</div><div class="tv" style="color:'+setCol2+'">'+R.setRate+'<small>%</small></div><div class="ts">目安 '+R.setBench+'%／'+kLblA+' '+R.apply+'名→'+kLblB+' '+R.fmC+'名</div></div>';
  tiles+='<div class="a3tile" style="border-top-color:#0089c4"><div class="tl">内定承諾率（④決断）</div><div class="tv" style="color:#0089c4">'+accPct+'<small>%</small></div><div class="ts">'+(R.noClosing?'クロージングツール未整備':'意思決定の後押しの状況')+'</div></div>';
- if(R.gapLoss>0)tiles+='<div class="a3tile" style="border-top-color:#d8453c"><div class="tl">機会損失（'+(R.paceMode?'期末見込み':'現時点')+'）</div><div class="tv" style="color:#d8453c">'+yen(R.gapLoss)+'</div><div class="ts">不足 '+R.gapN+'名 × 1名あたり採用価値</div></div>';
  tiles+='</div>';
  var scstrip='<div class="a3card"><h4>FANサイクル 5段階スコア（100点＝市場目安クリア）</h4><div class="a3scstrip">'+names.map(function(n,i){var l=lv(sc[i]);return '<div class="a3scs" style="border-top-color:'+STC[i]+'"><b>'+n+'</b><span style="color:'+l[1]+'">'+sc[i]+'<small>点</small></span><i>'+l[0]+'</i><em><u style="width:'+Math.max(4,Math.min(100,sc[i]))+'%;background:'+STC[i]+'"></u></em></div>';}).join('')+'</div>'+concl('最も低いのは「'+steps[low].name+'」'+sc[low]+'点。ここが総合'+gv+'点の主因であり、本診断の最優先テーマです。')+'</div>';
  var nextband='<div class="a3nextband"><b>▶ 次の一手</b>'+esc(pbl.solve)+' → 弊社「'+esc(pbl.svc)+'」で具体化（詳細はアクションプランのページ）</div>';
@@ -1714,16 +1737,25 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  var cLeak=concl('取りこぼしは合計 '+lossN+'名（応募 '+R.apply+'名中）。候補者都合の辞退 '+R.drop+'名は「WEB上の情報不足・比較負け」が主因のため、②惹きつける（採用サイト・口コミ・求人）の強化で減らせます。');
  var cRadar=concl('凹み（低スコア）＝伸びしろ。「'+steps[low].name+'」'+sc[low]+'点の底上げが最優先。凹みを順に埋めることで総合'+gv+'点から段階的な改善が見込めます。');
  var cCurve=concl((R.quant!=null&&R.ov>R.quant)?('「会えれば強いが、会えていない」型：選考の質 '+R.ov+'点に対し、量（目標達成 '+R.quant+'%）が不足。母集団形成（①認知される）がボトルネックです。'):('質・量のバランス型：理想カーブとの差が大きい段階の底上げが総合点に直結します。'));
- pages.push({sub:'総合診断サマリ',full:true,body:tiles+twoCol([execCard],[discCard])+scstrip+nextband});
- pages.push({sub:'選考の質①｜歩留まりスコアと取りこぼし',body:twoCol([addC(radarCard,cRadar)],[addC(leakCard,cLeak),atiCard])});
- pages.push({sub:'選考の質②｜数値ファネルと目標達成',body:twoCol([addC(funnelCard,cFun),goalCard],[addC(curveCard,cCurve),volCard])});
+ var kws=[];
+ kws[0]={t:(R.targetUp||R.underTarget||R.volShort)?'母集団の絶対数が不足':'母集団は概ね確保',s:'応募 '+R.apply+'名／必要 約'+R.reqApply+'名（市場標準で逆算）'};
+ kws[1]={t:(R.attendRate>=R.attendBench)?(kLblB+'参加率は目安をクリア'):(kLblB+'前の辞退＝WEB比較での失点'),s:(R.docOn?'書類通過→':kLblA+'→')+kLblB+'参加率 '+R.attendRate+'%（目安 '+R.attendBench+'%）'};
+ kws[2]={t:(sc[2]>=65)?'面接の見極め・動機づけは水準':'面接→内定の歩留まりに課題',s:'スコア '+sc[2]+'点（市場目安との比較）'};
+ kws[3]={t:(accPct>=80)?('内定承諾 '+accPct+'%＝決断は強み'):'内定→承諾の後押しに課題',s:'内定承諾率 '+accPct+'%'+(R.noClosing?'／クロージングツール未整備':'')};
+ kws[4]={t:'入社後の定着・活躍はこれからの設計テーマ',s:'定性評価（固定60点・参考）'};
+ var stepBands='<div class="a3steps">'+[0,1,2,3,4].map(function(i){var l=lv(sc[i]),stA=(d&&d.steps&&d.steps[i])||{},mem2=stepMemoStr(i),kw=kws[i];
+  return '<div class="a3stepband" style="border-left-color:'+STC[i]+'"><div class="sbL"><div><span class="sbnum" style="background:'+STC[i]+'">'+(i+1)+'</span><b>'+names[i]+'</b></div><div><span class="sbsc" style="color:'+l[1]+'">'+sc[i]+'<small>点</small></span><i>'+l[0]+'</i></div></div><div class="sbK"><b>'+kw.t+'</b><span>'+kw.s+'</span></div><div class="sbB">'+(mem2?'<div class="sbmemo">🗒 ヒアリング：'+esc(mem2)+'</div>':'')+'<div class="sbcmt">'+esc(stA.issue||pbStep(i)[0].issue)+'</div></div></div>';}).join('')+'</div>';
+ pages.push({sub:'全体像（総合診断サマリ）',full:true,purpose:'まず全体像から：総合点を「質（歩留まり）×量（目標達成）」で捉え、最優先テーマを1つに絞って共有します',body:tiles+twoCol([execCard],[discCard])+nextband});
+ pages.push({sub:'FANサイクル総覧（5段階の見取り図）',purpose:'採用活動を5つのステップに分解し、どこが強く・どこで取りこぼしているかを一望します',body:scstrip+twoCol([addC(radarCard,cRadar)],[addC(curveCard,cCurve)])});
+ pages.push({sub:'ステップ別フィードバック（①→⑤）',purpose:'ヒアリングでうかがった事実と数値を突き合わせ、①→⑤の順にフィードバックします',body:stepBands});
+ pages.push({sub:'数値の裏付け（選考ファネル詳細）',purpose:'スコアの根拠：選考ファネルの実数・通過率と、取りこぼしの内訳を確認します',body:twoCol([addC(funnelCard,cFun),volCard],[addC(leakCard,cLeak),atiCard])});
  
- var p3L=[rvCard,compLossCard,memoCard].filter(Boolean),p3R=[tgtCard].filter(Boolean);
- if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',body:twoCol(p3L,p3R)});
- if(designBand){pages.push({sub:'アクションプラン（優先課題と解決策）',body:planBand});pages.push({sub:'施策の設計指針・次回ご提案',last:true,body:designBand+ctaBand+footLogic});}else{pages.push({sub:'アクションプラン・ご提案',last:true,body:planBand+ctaBand+footLogic});}
+ var p3L=[rvCard,compLossCard].filter(Boolean),p3R=[tgtCard].filter(Boolean);
+ if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',purpose:'候補者は貴社をこう見ています：口コミ・競合比較・ターゲット市場の難易度',body:twoCol(p3L,p3R)});
+ if(designBand){pages.push({sub:'アクションプラン（優先課題と解決策）',purpose:'優先順位と解決策：どこから・何を・どの順で直すか',body:planBand});pages.push({sub:'施策の設計指針・次回ご提案',last:true,purpose:'施策の中身：ヒアリングを反映した設計指針と、次回までにご用意する内容',body:designBand+ctaBand+footLogic});}else{pages.push({sub:'アクションプラン・ご提案',last:true,purpose:'優先順位と解決策、次回までにご用意する内容',body:planBand+ctaBand+footLogic});}
  var tot=pages.length,html='';
  pages.forEach(function(pg,ix){var no=ix+1;
-  html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
+  html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+(pg.purpose?'<div class="a3purpose"><b>このページの位置づけ</b><span>'+pg.purpose+'</span></div>':'')+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
  host.innerHTML=html;}
 function printReport(){
  renderA3();
