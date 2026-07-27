@@ -697,6 +697,11 @@ body>*{display:none!important}
 
 /* v6b: A4スライドではチャートを大きく表示 */
 .a3page .a3card svg{max-height:480px!important}
+
+/* 課題・原因・解決策のぶら下げ2列レイアウト（本文はラベル右の縦列に揃える） */
+.a3page .a3prow{display:flex;gap:12px;align-items:flex-start}
+.a3page .a3prow>b{flex:0 0 62px}
+.a3page .a3prow>span{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -1674,7 +1679,7 @@ function a3PlanCards(order,off){off=off||0;var d=getAI();var pp=(d&&d.proposals)
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
  var why=(R.noSite&&i===1)?'採用サイト未整備（重点施策なし）のため強制的に優先':(R.noPitch&&i===1)?'採用ピッチ資料なしのため優先':((R.targetUp||R.volDriven)&&i===0)?'母集団が必要水準を下回るため強制的に優先':(R.noClosing&&i===3)?'クロージングツールなしのため優先':('スコア'+R.sc[i]+'点（5段階中の低い順）');
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+'<div><b>課題</b>'+esc(issue.length>130?issue.slice(0,130)+'…':issue)+'</div><div><b>原因</b>'+esc(cause.length>130?cause.slice(0,130)+'…':cause)+'</div><div><b>解決策</b>'+esc(solve.length>130?solve.slice(0,130)+'…':solve)+'</div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+'<div class="a3prow"><b>課題</b><span>'+esc(issue.length>130?issue.slice(0,130)+'…':issue)+'</span></div><div class="a3prow"><b>原因</b><span>'+esc(cause.length>130?cause.slice(0,130)+'…':cause)+'</span></div><div class="a3prow"><b>解決策</b><span>'+esc(solve.length>130?solve.slice(0,130)+'…':solve)+'</span></div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
