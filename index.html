@@ -673,6 +673,30 @@ body>*{display:none!important}
 .a3p2 .a3plancards{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important}
 .a3stepband{grid-template-columns:200px 300px 1fr;gap:16px}
 .a3tile .tv{font-size:32px}
+
+/* ===== v6: チャート・表・帯の視認性強化／プラン統合 ===== */
+.a3page .rtbl th{font-size:14.5px;padding:9px 12px}
+.a3page .rtbl td{font-size:15.5px;padding:8px 12px;line-height:1.45}
+.a3page .a3cols div{font-size:16px;line-height:1.6}
+.sbK>b{border-bottom:3px solid rgba(0,137,196,.4);padding-bottom:2px;font-size:17px}
+.sbK>span{font-size:13.5px}
+.sbL b{font-size:17px}
+.sbsc{font-size:32px}
+.sbmemo{font-size:14.5px;line-height:1.75;margin-bottom:9px;padding:10px 14px}
+.sbmemo>b{display:block;margin-bottom:5px;color:#7a5b17}
+.sbmemo ul{margin:0;padding-left:19px}
+.sbmemo li{margin-bottom:3px}
+.sbcmt{font-size:15.5px;line-height:1.8;display:flex;gap:10px;align-items:flex-start}
+.sbcmt>b{font-size:12.5px;background:#0A2A3A;color:#fff;border-radius:6px;padding:3px 10px;white-space:nowrap;margin-top:3px;-webkit-print-color-adjust:exact}
+.a3p2 .a3plancard{font-size:14px;line-height:1.65;padding:14px 16px 12px}
+.a3p2 .a3pch b{font-size:15.5px}
+.a3p2 .a3pwhy{font-size:12.5px;line-height:1.55}
+.a3p2 .a3pmemo{font-size:12.5px;line-height:1.6}
+.a3p2 .a3plancard>div{margin-bottom:7px}
+.a3p2 .a3psvc{font-size:14px;font-weight:bold}
+
+/* v6b: A4スライドではチャートを大きく表示 */
+.a3page .a3card svg{max-height:480px!important}
 </style>
 </head>
 <body>
@@ -1094,7 +1118,7 @@ function getAI(){var d=parseAI(document.getElementById("aiNote").value);
 function cssv(v){var m={"var(--ok)":"#1f9e6a","var(--cyanD)":"#0089c4","var(--warn)":"#d98a0c","var(--bad)":"#d8453c"};return m[v]||v;}
 function chartSVG(sc){
  var ideal=[48,60,72,84,94];function X(i){return 100+i*200;}function Y(v){return 264-v/100*240;}
- var s='<svg viewBox="0 0 1000 300" width="100%" style="display:block">';
+ var s='<svg viewBox="0 -40 1000 344" width="100%" style="display:block">';
  [25,50,75].forEach(function(g){s+='<line x1="100" y1="'+Y(g)+'" x2="900" y2="'+Y(g)+'" stroke="#eef3f6"/>';});
  s+='<polyline points="'+ideal.map(function(v,i){return X(i)+","+Y(v);}).join(" ")+'" fill="none" stroke="#b9c6cd" stroke-width="3" stroke-dasharray="8 6"/>';
  s+='<polyline points="'+sc.map(function(v,i){return X(i)+","+Y(v);}).join(" ")+'" fill="none" stroke="#00B0F0" stroke-width="5"/>';
@@ -1186,7 +1210,7 @@ function radarSVG(cats){var n=cats.length;if(n<3)return"";var cx=230,cy=152,R=92
  var d=[];for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0));var q=pt(i,R*sc/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}
  var st=[];for(var i=0;i<n;i++){var q=pt(i,R*3/max);st.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+st.join(' ')+'" fill="none" stroke="#7a8791" stroke-width="1.4" stroke-dasharray="5 4"/>';var l3=pt(0,R*3/max);s+='<text x="'+l3[0].toFixed(1)+'" y="'+(l3[1]-5).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="#5a6771">標準 3.0</text>';
  s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.18)" stroke="#00B0F0" stroke-width="2.5"/>';
- for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0)),col=ratingColor(cats[i].score);var q=pt(i,R*sc/max);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';
+ for(var i=0;i<n;i++){var sc=Math.max(0,Math.min(5,parseFloat(cats[i].score)||0)),col=ratingColor(cats[i].score);var q=pt(i,R*sc/max);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="6" fill="'+col+'"/>';
   var lp=pt(i,R+17),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");
   s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="12.5"><tspan fill="#3a4a53">'+esc(cats[i].name)+'</tspan><tspan fill="'+col+'" font-weight="bold"> '+esc(cats[i].score)+'</tspan></text>';}
  return s+'</svg>';}
@@ -1592,14 +1616,14 @@ function renderLite(){var host=document.getElementById("liteQ");if(!host)return;
 }
 
 /* ===== 報告書（PDF出力用） ===== */
-function radarScoreSVG(sc){var n=5,cx=230,cy=158,R=102,max=100;
+function radarScoreSVG(sc){var n=5,cx=320,cy=210,R=162,max=100;
  function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
- var s='<svg viewBox="0 0 460 336" width="100%" style="max-width:460px;display:block;margin:4px auto">';
+ var s='<svg viewBox="0 0 640 440" width="100%" style="max-width:760px;display:block;margin:4px auto">';
  [20,40,60,80,100].forEach(function(lv){var p=[];for(var i=0;i<n;i++){var q=pt(i,R*lv/max);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="#e3ebf0"/>';});
  for(var i=0;i<n;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e3ebf0"/>';}
  var d=[];for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max);d.push(q[0].toFixed(1)+','+q[1].toFixed(1));}
  s+='<polygon points="'+d.join(' ')+'" fill="rgba(0,176,240,.20)" stroke="#00B0F0" stroke-width="2.5"/>';
- for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max),col=cssv(lv(sc[i])[1]);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';var lp=pt(i,R+18),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="13"><tspan fill="#3a4a53">'+esc(names[i])+' </tspan><tspan fill="'+col+'" font-weight="bold">'+sc[i]+'</tspan></text>';}
+ for(var i=0;i<n;i++){var q=pt(i,R*Math.max(0,Math.min(100,sc[i]))/max),col=cssv(lv(sc[i])[1]);s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.5" fill="'+col+'"/>';var lp=pt(i,R+26),anc=Math.abs(lp[0]-cx)<8?"middle":(lp[0]>cx?"start":"end");s+='<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anc+'" dominant-baseline="middle" font-size="17.5"><tspan fill="#3a4a53">'+esc(names[i])+' </tspan><tspan fill="'+col+'" font-weight="bold">'+sc[i]+'</tspan></text>';}
  return s+'</svg>';}
 function reportFunnel(){var act=activeDefs(),rows="";for(var i=0;i<act.length;i++){var k=act[i].k,cnt=vals[k]||0,pass="";if(i>0){var a=act[i-1].k,bn=benchOf(a,k),pc=(vals[a]||0)>0?Math.round(cnt/(vals[a]||0)*100):0;pass='<span style="color:'+cssv(gc(pc,bn))+'">'+pc+'%</span> <span style="color:#888">/ 目安'+bn+'%</span>';}var bd=(isShin()&&k!=="offer"&&k!=="accept")?' <small style="color:#888">(早'+(valsE[k]||0)+'+本'+(valsM[k]||0)+')</small>':'';rows+='<tr><td>'+STAGE_TITLE[k]+'</td><td style="text-align:right">'+cnt+'名'+bd+'</td><td style="text-align:right">'+pass+'</td></tr>';}return '<table class="rtbl"><tr><th>選考段階</th><th style="text-align:right">人数'+(isShin()?' <small style="font-weight:normal">(早期+本選考)</small>':'')+'</th><th style="text-align:right">前段からの通過率</th></tr>'+rows+'</table>';}
 function reportIssues(){var L=['最重要ボトルネック：<b>'+steps[R.low].name+'</b>（スコア '+R.sc[R.low]+'）'];if(R.failR>=40)L.push('ターゲット外の応募が '+R.failR+'%（母集団の質に課題）');if(R.dropR>=25)L.push('応募後の離脱が '+R.dropR+'%（WEBの競合比較で面接前に格下げの可能性）');if(R.accRate>0){var dr=Math.round((1-R.accRate)*100);L.push('内定辞退率 約'+dr+'%（'+recruitTitle()+'の市場平均 約'+declAvg()+'%）');}return '<ul class="rul">'+L.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul>';}
@@ -1650,7 +1674,7 @@ function a3PlanCards(order,off){off=off||0;var d=getAI();var pp=(d&&d.proposals)
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
  var why=(R.noSite&&i===1)?'採用サイト未整備（重点施策なし）のため強制的に優先':(R.noPitch&&i===1)?'採用ピッチ資料なしのため優先':((R.targetUp||R.volDriven)&&i===0)?'母集団が必要水準を下回るため強制的に優先':(R.noClosing&&i===3)?'クロージングツールなしのため優先':('スコア'+R.sc[i]+'点（5段階中の低い順）');
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'<div class="a3pmemo" style="background:#fff7e6">🗒 この段階はヒアリング未入力＝数値のみで判定（メモを記入すると課題・解決策の精度が上がります）</div>')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+'<div><b>課題</b>'+esc(issue.length>90?issue.slice(0,90)+'…':issue)+'</div><div><b>原因</b>'+esc(cause.length>90?cause.slice(0,90)+'…':cause)+'</div><div><b>解決策</b>'+esc(solve.length>90?solve.slice(0,90)+'…':solve)+'</div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
@@ -1720,9 +1744,8 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  if(R.volShort||R.targetUp){volCard='<div class="a3card"><h4>ターゲット・母集団と目標（量の分析）</h4><div style="font-size:11.5px">'+(R.underTarget?'目標達成に必要な応募':'目標達成に必要な母集団')+'（市場標準の通過率で逆算）約<b>'+R.reqApply+'</b>名 ／ 現状 <b>'+R.apply+'</b>名（<b style="color:var(--bad)">不足 '+R.applyGap+'名</b>）'+(R.interviewGap>0?'　面接も <b style="color:var(--bad)">約'+R.interviewGap+'名不足</b>':'')+'</div><div class="a3vol">'+(R.underTarget?'<b>目標未達の主因は、ターゲット設定と、ターゲットへの求人の魅力訴求の弱さ</b>と推定されます。':'<b>目標は達成していますが、母集団は市場標準に対して薄い状態</b>です（少数の応募を高い通過率＝エージェント依存などで採れている＝再現性・スケールにリスク）。')+'①認知される（ターゲット設定・媒体/スカウト最適化）・②惹きつける（求人原稿・採用サイト・採用ピッチでの訴求）の強化が最優先。立地・企業規模の不利もWEB訴求で補えます。</div></div>';}
  /* ===== A3横 × 複数ページ組版（大判タイポ・1テーマ1ページ） ===== */
  var order=diagOrder();
- var planBand1='<div class="a3plan"><h4>採用成功に向けた 課題 → 原因 → 解決策｜最優先の一手</h4>'+a3FanStrip(order)+a3PlanCards(order.slice(0,1))+'</div>';
- var planBand2='<div class="a3plan"><h4>優先②・③の課題と解決策</h4>'+a3PlanCards(order.slice(1),1)+'</div>';
- var designBand=_planExtras.length?('<div class="a3plan a3dsg"><h4>施策の設計指針｜ヒアリング内容を反映した「なぜ必要か」と「入れるべき中身」</h4><div class="a3dxg">'+_planExtras.join('')+'</div></div>'):'';
+ var planBandAll='<div class="a3plan"><h4>採用成功に向けた 課題 → 原因 → 解決策（優先順）</h4>'+a3PlanCards(order)+'</div>';
+ var designBand=_planExtras.length?('<div class="a3plan a3dsg"><h4>ご提案施策を「どう作るか」｜貴社ヒアリングを反映した設計案</h4><div class="a3dxg">'+_planExtras.join('')+'</div></div>'):'';
  var nmA3=(R.nextM&&R.nextM.agenda)?R.nextM.agenda.filter(Boolean).slice(0,3):[];
  var nmHook3=(R.nextM&&R.nextM.hook)?R.nextM.hook:'';
  var ctaBand='<div class="a3ctaband"><b>🤝 次回ご提案</b>'+(nmA3.length?'<ol class="a3agenda">'+nmA3.map(function(a){return '<li>'+esc(a)+'</li>';}).join('')+'</ol>':'<div class="a3ctatxt">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div>')+(nmHook3?'<div class="a3ctatxt">'+esc(nmHook3)+'</div>':'')+'</div>';
@@ -1751,21 +1774,21 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  kws[3]={t:(accPct>=80)?('内定承諾 '+accPct+'%＝決断は強み'):'内定→承諾の後押しに課題',s:'内定承諾率 '+accPct+'%'+(R.noClosing?'／クロージングツール未整備':'')};
  kws[4]={t:'入社後の定着・活躍はこれからの設計テーマ',s:'定性評価（固定60点・参考）'};
  var mkBand=function(i){var l=lv(sc[i]),stA=(d&&d.steps&&d.steps[i])||{},mem2=stepMemoStr(i),kw=kws[i];
-  return '<div class="a3stepband" style="border-left-color:'+STC[i]+'"><div class="sbL"><div><span class="sbnum" style="background:'+STC[i]+'">'+(i+1)+'</span><b>'+names[i]+'</b></div><div><span class="sbsc" style="color:'+l[1]+'">'+sc[i]+'<small>点</small></span><i>'+l[0]+'</i></div></div><div class="sbK"><b>'+kw.t+'</b><span>'+kw.s+'</span></div><div class="sbB">'+(mem2?'<div class="sbmemo">🗒 ヒアリング：'+esc(mem2.length>160?mem2.slice(0,160)+'…':mem2)+'</div>':'')+'<div class="sbcmt">'+esc(stA.issue||pbStep(i)[0].issue)+'</div></div></div>';};
+  return '<div class="a3stepband" style="border-left-color:'+STC[i]+'"><div class="sbL"><div><span class="sbnum" style="background:'+STC[i]+'">'+(i+1)+'</span><b>'+names[i]+'</b></div><div><span class="sbsc" style="color:'+l[1]+'">'+sc[i]+'<small>点</small></span><i>'+l[0]+'</i></div></div><div class="sbK"><b>'+kw.t+'</b><span>'+kw.s+'</span></div><div class="sbB">'+(mem2?('<div class="sbmemo"><b>🗒 ヒアリングでうかがった内容</b><ul>'+mem2.split('／').slice(0,4).map(function(x){x=x.replace(/^\s+|\s+$/g,'');return x?('<li>'+esc(x.length>70?x.slice(0,70)+'…':x)+'</li>'):'';}).join('')+'</ul></div>'):'')+'<div class="sbcmt"><b>評価</b><span>'+esc(stA.issue||pbStep(i)[0].issue)+'</span></div></div></div>';};
  var stepBands12='<div class="a3steps">'+[0,1].map(mkBand).join('')+'</div>',stepBands34='<div class="a3steps">'+[2,3].map(mkBand).join('')+'</div>',stepBand5='<div class="a3steps">'+[4].map(mkBand).join('')+'</div>';
  pages.push({sub:'全体像（総合診断サマリ）',full:true,body:tiles+execCard});
- pages.push({sub:'全体像｜本日の発見と次の一手',purpose:'ヒアリングでの実感と客観データを突き合わせ、最優先の一手を1つに絞って共有します',body:discCard+nextband});
- pages.push({sub:'FANサイクル見取り図（5段階スコア）',purpose:'採用活動を5つのステップに分解し、どこが強く・どこで取りこぼしているかを一望します',body:scstrip+basisCard});
- pages.push({sub:'FANサイクル総覧｜バランス（レーダー）',purpose:'5段階のバランスを面で確認します。凹み＝伸びしろです',body:addC(radarCard,cRadar)});
- pages.push({sub:'FANサイクル総覧｜到達度カーブ',purpose:'理想カーブとの差分から、優先的に埋めるステップを特定します',body:addC(curveCard,cCurve)});
- pages.push({sub:'ステップ別フィードバック（①・②）',purpose:'ヒアリングでうかがった事実と数値を突き合わせ、ステップ順にフィードバックします',body:stepBands12});
- pages.push({sub:'ステップ別フィードバック（③・④）',purpose:'ヒアリングでうかがった事実と数値を突き合わせ、ステップ順にフィードバックします',body:stepBands34});
- pages.push({sub:'ステップ別フィードバック（⑤）と選考ファネル',purpose:'最後のステップと、スコアの根拠となる選考ファネルの実数を確認します',body:stepBand5+addC(funnelCard,cFun)});
- pages.push({sub:'数値の裏付け｜取りこぼしと設定率内訳',purpose:'どこで・何名を・どんな理由で取りこぼしているかを内訳で確認します',body:twoCol([addC(leakCard,cLeak)],[atiCard])});
+ pages.push({sub:'全体像｜本日の発見と次の一手',purpose:'ヒアリングでうかがったご実感と客観データを突き合わせた、本日の気づきの整理です',body:discCard+nextband});
+ pages.push({sub:'FANサイクル見取り図（5段階スコア）',purpose:'採用活動を5つのステップに分け、強みと改善余地を一覧でご確認いただけます',body:scstrip+basisCard});
+ pages.push({sub:'FANサイクル総覧｜バランス（レーダー）',purpose:'5段階のバランスを面でご確認いただけます。低い項目は今後の伸びしろです',body:addC(radarCard,cRadar)});
+ pages.push({sub:'FANサイクル総覧｜到達度カーブ',purpose:'理想カーブとの差分から、優先して強化すべきステップを整理しております',body:addC(curveCard,cCurve)});
+ pages.push({sub:'ステップ別フィードバック（①・②）',purpose:'ヒアリングでうかがった内容と数値を突き合わせ、ステップごとに整理しております',body:stepBands12});
+ pages.push({sub:'ステップ別フィードバック（③・④）',purpose:'ヒアリングでうかがった内容と数値を突き合わせ、ステップごとに整理しております',body:stepBands34});
+ pages.push({sub:'ステップ別フィードバック（⑤）と選考ファネル',purpose:'最後のステップと、スコア算出の根拠となる選考ファネルの実数です',body:stepBand5+addC(funnelCard,cFun)});
+ pages.push({sub:'数値の裏付け｜取りこぼしと設定率内訳',purpose:'どの段階で・何名が・どのような理由で離脱しているかの内訳です',body:twoCol([addC(leakCard,cLeak)],[atiCard])});
  
  var p3L=[rvCard,compLossCard].filter(Boolean),p3R=[tgtCard].filter(Boolean);
- if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',purpose:'候補者は貴社をこう見ています：口コミ・競合比較・ターゲット市場の難易度',body:twoCol(p3L,p3R)});
- pages.push({sub:'アクションプラン｜最優先の一手',purpose:'優先順位と解決策：どこから・何を・どの順で直すか',body:planBand1});pages.push({sub:'アクションプラン｜優先②・③',purpose:'続いて優先②・③の課題と解決策です',body:planBand2});if(designBand)pages.push({sub:'施策の設計指針',purpose:'施策の中身：ヒアリングを反映した「なぜ必要か」と「入れるべき中身」',body:designBand});pages.push({sub:'次回ご提案・診断ロジック',last:true,purpose:'次回までに弊社でご用意する内容です',body:ctaBand+footLogic});
+ if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',purpose:'候補者・市場から見た貴社の現在地（口コミ・競合比較・ターゲット採用難易度）の整理です',body:twoCol(p3L,p3R)});
+ pages.push({sub:'アクションプラン（優先①〜③）',purpose:'診断結果をふまえ、優先順位をつけた課題と解決の方向性をご提案いたします',body:planBandAll});if(designBand)pages.push({sub:'ご提案施策の設計案（どう作るか）',purpose:'アクションプランの各施策について、ヒアリング内容を反映した「なぜ必要か」「何を盛り込むか」の設計案です',body:designBand});pages.push({sub:'次回のご提案',last:true,purpose:'次回のお打ち合わせまでに、弊社にてご用意する内容のご案内です',body:ctaBand+footLogic});
  var tot=pages.length,html='';
  pages.forEach(function(pg,ix){var no=ix+1;
   html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+(pg.purpose?'<div class="a3purpose"><b>このページの位置づけ</b><span>'+pg.purpose+'</span></div>':'')+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
