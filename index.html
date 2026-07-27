@@ -218,12 +218,12 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3p2 .a3plan>h4{font-size:18px}
 .a3p2 .a3fanstep .a3fann{font-size:16px}
 .a3p2 .a3fanstep .a3fansc{font-size:13.5px}
-.a3p2 .a3plancard{font-size:14.5px;line-height:1.62;padding:15px 17px}
+.a3p2 .a3plancard{font-size:15.5px;line-height:1.65;padding:16px 18px}
 .a3p2 .a3pch b{font-size:16px}
 .a3p2 .a3pmemo{font-size:13px}
 .a3p2 .a3plancard>div>b:first-child{min-width:54px;font-size:12.5px}
 .a3p2 .a3psvc{font-size:15px;padding:9px 12px}
-.a3p2 .svcwhy ol,.a3p2 .svcct ul{font-size:14px;line-height:1.6}
+.a3p2 .svcwhy ol,.a3p2 .svcct ul{font-size:15px;line-height:1.65}
 .a3p2 .svcwhy>b,.a3p2 .svcct>b{font-size:12px}
 .a3ctaband>b{font-size:19px}
 .a3ctaband .a3agenda{font-size:16px;line-height:1.8}
@@ -232,8 +232,11 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3plancard{display:flex;flex-direction:column}
 .a3plancard .a3psvc{margin-top:auto!important}
 .a3fill .a3plan{display:flex;flex-direction:column}
-.a3fill .a3plan>.a3plancards{flex:1}
-.a3fill .a3plancard{justify-content:space-between}
+.a3fill{justify-content:space-between}
+.a3fill .a3dsg{flex:1}
+.a3dxg{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin-top:4px}
+.a3dxi{background:#fff;border:1px solid #dbe3e8;border-left:4px solid var(--cyan);border-radius:8px;padding:13px 16px}
+.a3dxi>b{font-size:15.5px;display:block;margin-bottom:6px}
 /* === A3 2枚構成・プロ品質タイポ（拡大） === */
 .a3page{box-shadow:0 3px 14px rgba(10,42,58,.10);border:1px solid #e3e9ed;border-radius:4px;margin:0 auto 22px;padding:12px 16px}
 .a3pgno{font-size:12.5px;font-weight:bold;color:#04222e;background:var(--cyan);border-radius:6px;padding:2px 11px;vertical-align:4px;margin-left:12px;letter-spacing:.04em}
@@ -1547,7 +1550,8 @@ function diagOrder(){var base=[0,1,2,3,4].map(function(i){return{i:i,sc:R.sc[i]}
  var order=[];forced.concat(base).forEach(function(i){if(order.indexOf(i)<0)order.push(i);});return order.slice(0,3);}
 function a3FanStrip(order){var pri={};order.forEach(function(i,idx){pri[i]=idx+1;});
  return '<div class="a3fan">'+names.map(function(n,i){var t=pri[i];return '<div class="a3fanstep'+(t?' t':'')+'" style="--c:'+STC[i]+'">'+(t?'<span class="a3fanprio">'+t+'</span>':'')+'<span class="a3fann">'+n+'</span><span class="a3fansc">'+R.sc[i]+'点</span></div>'+(i<4?'<span class="a3fanar">▶</span>':'');}).join("")+'</div>';}
-function a3PlanCards(order){var d=getAI();var pp=(d&&d.proposals)||{};return '<div class="a3plancards">'+order.map(function(i,idx){var p=pbStep(i)[0],hi=R.sc[i]>=65,issue=p.issue,cause=(hi?'目安は満たすが、さらに上積みの余地':'目安（市場基準）を下回る歩留まり'),solve=p.solve,svc=p.svc,extra='';
+var _planExtras=[];
+function a3PlanCards(order){var d=getAI();var pp=(d&&d.proposals)||{};_planExtras=[];return '<div class="a3plancards">'+order.map(function(i,idx){var p=pbStep(i)[0],hi=R.sc[i]>=65,issue=p.issue,cause=(hi?'目安は満たすが、さらに上積みの余地':'目安（市場基準）を下回る歩留まり'),solve=p.solve,svc=p.svc,extra='';
  var st=(d&&d.steps&&d.steps[i])||{};if(st.issue)issue=st.issue;if(st.cause)cause=st.cause;if(st.solution)solve=st.solution;
  if(i===1&&(R.noSite||R.compAttract||R.targetUp))extra=svcPlanHtml(pp.site);
  if(i===1&&R.noPitch&&!extra)extra=svcPlanHtml(pp.pitch);
@@ -1560,7 +1564,7 @@ function a3PlanCards(order){var d=getAI();var pp=(d&&d.proposals)||{};return '<d
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
  var mem=stepMemoStr(i);
  var why=(R.noSite&&i===1)?'採用サイト未整備（重点施策なし）のため強制的に優先':(R.noPitch&&i===1)?'採用ピッチ資料なしのため優先':((R.targetUp||R.volDriven)&&i===0)?'母集団が必要水準を下回るため強制的に優先':(R.noClosing&&i===3)?'クロージングツールなしのため優先':('スコア'+R.sc[i]+'点（5段階中の低い順）');
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'<div class="a3pmemo" style="background:#fff7e6">🗒 この段階はヒアリング未入力＝数値のみで判定（メモを記入すると課題・解決策の精度が上がります）</div>')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+extra+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+(idx===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+(mem?'<div class="a3pmemo">🗒 採用担当者ヒアリング（事実）：'+esc(mem)+'</div>':'<div class="a3pmemo" style="background:#fff7e6">🗒 この段階はヒアリング未入力＝数値のみで判定（メモを記入すると課題・解決策の精度が上がります）</div>')+'<div><b>課題</b>'+esc(issue)+'</div><div><b>原因</b>'+esc(cause)+'</div><div><b>解決策</b>'+esc(solve)+'</div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
@@ -1630,6 +1634,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  /* ===== A3横 × 複数ページ組版（大判タイポ・1テーマ1ページ） ===== */
  var order=diagOrder();
  var planBand='<div class="a3plan"><h4>採用成功に向けた 課題 → 原因 → 解決策（優先順・伸びしろ順）｜FANサイクルのどこを攻めるか</h4>'+a3FanStrip(order)+a3PlanCards(order)+'</div>';
+ var designBand=_planExtras.length?('<div class="a3plan a3dsg"><h4>施策の設計指針｜ヒアリング内容を反映した「なぜ必要か」と「入れるべき中身」</h4><div class="a3dxg">'+_planExtras.join('')+'</div></div>'):'';
  var nmA3=(R.nextM&&R.nextM.agenda)?R.nextM.agenda.filter(Boolean).slice(0,3):[];
  var nmHook3=(R.nextM&&R.nextM.hook)?R.nextM.hook:'';
  var ctaBand='<div class="a3ctaband"><b>🤝 次回ご提案</b>'+(nmA3.length?'<ol class="a3agenda">'+nmA3.map(function(a){return '<li>'+esc(a)+'</li>';}).join('')+'</ol>':'<div class="a3ctatxt">最優先は <b>'+steps[low].name+'</b>。'+esc(pbl.solve)+' を「'+esc(pbl.svc)+'」で具体化してご提案します。</div>')+(nmHook3?'<div class="a3ctatxt">'+esc(nmHook3)+'</div>':'')+'</div>';
@@ -1639,7 +1644,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  pages.push({sub:'選考ファネル詳細',body:twoCol([radarCard,leakCard],[curveCard,funnelCard])});
  var p3L=[rvCard,compLossCard,memoCard].filter(Boolean),p3R=[tgtCard,volCard].filter(Boolean);
  if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',body:twoCol(p3L,p3R)});
- pages.push({sub:'アクションプラン・ご提案',last:true,body:planBand+ctaBand+footLogic});
+ pages.push({sub:'アクションプラン・ご提案',last:true,body:planBand+designBand+ctaBand+footLogic});
  var tot=pages.length,html='';
  pages.forEach(function(pg,ix){var no=ix+1;
   html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
