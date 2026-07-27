@@ -702,6 +702,12 @@ body>*{display:none!important}
 .a3page .a3prow{display:flex;gap:12px;align-items:flex-start}
 .a3page .a3prow>b{flex:0 0 62px}
 .a3page .a3prow>span{flex:1;min-width:0}
+
+/* v7: 優先施策 1ページ1テーマ＋具体策インライン */
+.a3pdetail{margin-top:8px;background:#F5FAFD;border:1px solid #d9e8f0;border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;-webkit-print-color-adjust:exact}
+.a3page .svcwhy>b,.a3page .svcct>b{font-size:14.5px}
+.a3page .svcwhy ol,.a3page .svcct ul{font-size:15px;line-height:1.7;margin:6px 0 0;padding-left:22px}
+.a3page .svcwhy li,.a3page .svcct li{margin-bottom:5px}
 </style>
 </head>
 <body>
@@ -1677,9 +1683,10 @@ function a3PlanCards(order,off){off=off||0;var d=getAI();var pp=(d&&d.proposals)
  else if(R.targetUp&&i===1){issue='ターゲットに刺さる求人の魅力訴求が弱く、狙う層の応募・志望度が伸びない';cause='ターゲット（求める人物像）の設定が曖昧、または訴求がターゲットにずれている';solve='ターゲットを明確化し、そのターゲットに刺さる求人原稿・採用サイト・採用ピッチで魅力訴求を強化する';svc='TRACE ／ 制作顧問（クリエイティブ）';}
  else if((R.targetUp||R.volDriven)&&i===0){issue=(R.underTarget?'目標に対し応募・面接（母集団）が不足':'目標は達成も母集団（応募数）が市場標準比で薄い')+'（必要応募〈市場標準〉約'+R.reqApply+'名／現状 '+R.apply+'名'+(R.interviewGap>0?'・面接 約'+R.interviewGap+'名不足':'')+'）';cause=R.underTarget?'ターゲット設定が曖昧で、狙う層へリーチできていない（＋立地/規模の不利）':'少数の応募を高い通過率（エージェント依存など）で採れており、母集団形成が手薄＝再現性・スケールにリスク';solve='ターゲット（求める人物像）を明確化し、狙う層へ届く媒体・スカウト・エージェントに最適化して母集団を増やす';svc='TRACE ／ スカウト運用支援 ／ REVP';}
  if(R.noClosing&&i===3){issue='本人・家族向けのクロージングツールが無く、意思決定の後押しが弱い';cause='内定→承諾 '+Math.round(R.accRate*100)+'%（辞退につながる）';solve='クロージングブック／オファーレターで本人・家族の不安を解消する';svc='クロージングブック制作（辞退防止BOOK）';}
+ if(i===0&&!extra){var t0=[];if(R.reqApply)t0.push('母集団の目標設定：応募 約'+R.reqApply+'名（市場標準の通過率から逆算）を媒体・スカウト・紹介の合算で設計する');if(R.tA&&R.tA.requiredMove)t0.push(R.tA.requiredMove);if(R.tA&&R.tA.mustReview)t0.push('MUST要件の見直し：'+R.tA.mustReview);if(t0.length)extra='<div class="svcwhy"><b>具体的な進め方（ヒアリング・ターゲット分析反映）</b><ol>'+t0.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>';}
  var mem=stepMemoStr(i);
  var why=(R.noSite&&i===1)?'採用サイト未整備（重点施策なし）のため強制的に優先':(R.noPitch&&i===1)?'採用ピッチ資料なしのため優先':((R.targetUp||R.volDriven)&&i===0)?'母集団が必要水準を下回るため強制的に優先':(R.noClosing&&i===3)?'クロージングツールなしのため優先':('スコア'+R.sc[i]+'点（5段階中の低い順）');
- return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+'<div class="a3prow"><b>課題</b><span>'+esc(issue.length>130?issue.slice(0,130)+'…':issue)+'</span></div><div class="a3prow"><b>原因</b><span>'+esc(cause.length>130?cause.slice(0,130)+'…':cause)+'</span></div><div class="a3prow"><b>解決策</b><span>'+esc(solve.length>130?solve.slice(0,130)+'…':solve)+'</span></div>'+(extra?(_planExtras.push('<div class="a3dxi"><b style="color:'+STC[i]+'">'+names[i]+'｜'+esc(svc)+'</b>'+extra+'</div>'),''):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
+ return '<div class="a3plancard" style="border-top-color:'+STC[i]+'"><div class="a3pch"><span class="a3pnum">'+(idx+off+1)+'</span><b style="color:'+STC[i]+'">'+names[i]+'（'+R.sc[i]+'点'+(hi?'・さらに強化':'・要改善')+'）</b>'+((idx+off)===0?'<span class="a3prio">🔥最優先</span>':'')+'<span class="a3phase">🗓 '+(['即時着手','30日以内','90日以内'][idx+off]||'順次')+'</span></div>'+'<div class="a3pwhy">優先根拠：'+why+'</div>'+'<div class="a3prow"><b>課題</b><span>'+esc(issue.length>130?issue.slice(0,130)+'…':issue)+'</span></div><div class="a3prow"><b>原因</b><span>'+esc(cause.length>130?cause.slice(0,130)+'…':cause)+'</span></div><div class="a3prow"><b>解決策</b><span>'+esc(solve.length>130?solve.slice(0,130)+'…':solve)+'</span></div>'+(extra?('<div class="a3pdetail">'+extra+'</div>'):'')+'<div class="a3psvc">→ 弊社「'+esc(svc)+'」で具体化</div></div>';}).join("")+'</div>';}
 function renderA3(){var host=document.getElementById("a3report");if(!host)return;
  var comp=document.getElementById("company").value.trim()||"（会社名）",job=document.getElementById("jobtitle").value.trim(),per=periodStr(),today=new Date().toLocaleDateString("ja-JP");
  if(!R.filled){host.innerHTML='<div class="a3sheet"><div class="a3head"><div class="a3ttl">📋 '+recruitTitle()+' 成功確率アセスメント</div></div><div style="padding:24px;text-align:center;color:#586872">選考数値をすべて入力すると、A3の診断結果が表示されます。</div></div>';return;}
@@ -1793,7 +1800,7 @@ function renderA3(){var host=document.getElementById("a3report");if(!host)return
  
  var p3L=[rvCard,compLossCard].filter(Boolean),p3R=[tgtCard].filter(Boolean);
  if(p3L.length||p3R.length)pages.push({sub:'市場・候補者からの見え方',purpose:'候補者・市場から見た貴社の現在地（口コミ・競合比較・ターゲット採用難易度）の整理です',body:twoCol(p3L,p3R)});
- pages.push({sub:'アクションプラン（優先①〜③）',purpose:'診断結果をふまえ、優先順位をつけた課題と解決の方向性をご提案いたします',body:planBandAll});if(designBand)pages.push({sub:'ご提案施策の設計案（どう作るか）',purpose:'アクションプランの各施策について、ヒアリング内容を反映した「なぜ必要か」「何を盛り込むか」の設計案です',body:designBand});pages.push({sub:'次回のご提案',last:true,purpose:'次回のお打ち合わせまでに、弊社にてご用意する内容のご案内です',body:ctaBand+footLogic});
+ order.forEach(function(st,ix){var pn=ix+1;pages.push({sub:'アクションプラン 優先'+pn+'｜'+names[st],purpose:(ix===0?'診断結果をふまえた優先順位のご提示と、最優先課題の解決策・具体的な進め方のご提案です':'続いて、優先'+pn+'の課題と解決策、具体的な内容のご提案です'),body:(ix===0?('<div class="a3plan"><h4>ご提案の優先順位（伸びしろ・重要度順）</h4>'+a3FanStrip(order)+'</div>'):'')+'<div class="a3plan"><h4>優先'+pn+'：'+names[st]+'（'+R.sc[st]+'点）｜課題 → 原因 → 解決策 → 具体策</h4>'+a3PlanCards([st],ix)+'</div>'});});pages.push({sub:'次回のご提案',last:true,purpose:'次回のお打ち合わせまでに、弊社にてご用意する内容のご案内です',body:ctaBand+footLogic});
  var tot=pages.length,html='';
  pages.forEach(function(pg,ix){var no=ix+1;
   html+='<div class="a3prtpage"><div class="a3sheet a3page'+(pg.last?' a3p2':'')+'">'+(pg.full?pgHeadFull(no,tot,pg.sub):pgHeadSlim(no,tot,pg.sub))+(pg.purpose?'<div class="a3purpose"><b>このページの位置づけ</b><span>'+pg.purpose+'</span></div>':'')+pg.body+(pg.last?'':'<div class="a3foot">'+esc(comp)+'　'+no+' / '+tot+'</div>')+'</div></div>';});
