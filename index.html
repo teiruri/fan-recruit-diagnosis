@@ -168,9 +168,11 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 /* 印刷時：ページを縦いっぱいに使い、カードを均等配置（下部の余白をなくす） */
 .a3fill{display:flex;flex-direction:column}
 .a3fill .a3gridP{flex:1;align-items:stretch}
-.a3fill .a3gridP>div{display:flex;flex-direction:column;justify-content:space-between;gap:22px}
+.a3fill .a3gridP>div{display:flex;flex-direction:column;justify-content:flex-start;gap:22px}
+.a3fill .a3gridP>div>.a3card{flex:1 1 auto}
 .a3fill .a3gridP>div>.a3card{margin-bottom:0}
-.a3fill .a3grid1{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:22px}
+.a3fill .a3grid1{flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:22px}
+.a3fill .a3grid1>.a3card{flex:1 1 auto}
 .a3fill .a3plan{flex:1}
 .a3fill .a3ctaband{margin-top:14px}
 .a3basis{margin-top:8px;background:#f4f8fb;border:1px solid #dbe3e8;border-left:4px solid var(--cyan);border-radius:8px;padding:9px 12px;font-size:12.5px;line-height:1.7;color:#42525c}
@@ -231,6 +233,7 @@ body.mode-meet.show-result #a3report{display:block;overflow-x:auto}
 .a3plancard .a3psvc{margin-top:auto!important}
 .a3fill .a3plan{display:flex;flex-direction:column}
 .a3fill .a3plan>.a3plancards{flex:1}
+.a3fill .a3plancard{justify-content:space-between}
 /* === A3 2枚構成・プロ品質タイポ（拡大） === */
 .a3page{box-shadow:0 3px 14px rgba(10,42,58,.10);border:1px solid #e3e9ed;border-radius:4px;margin:0 auto 22px;padding:12px 16px}
 .a3pgno{font-size:12.5px;font-weight:bold;color:#04222e;background:var(--cyan);border-radius:6px;padding:2px 11px;vertical-align:4px;margin-left:12px;letter-spacing:.04em}
@@ -1654,7 +1657,7 @@ function printReport(){
   /* 幅・高さの両方にフィット：縮小時も横幅いっぱいに再流し込み（左寄り・右余白を解消）。反復で収束 */
   s.style.maxWidth='none';s.style.transform='none';s.style.transformOrigin='top left';
   var s0=1;
-  for(var it=0;it<4;it++){s.style.width=(innerW/s0)+'px';var nh=s.scrollHeight;var sn=Math.min(1.35,innerH/nh);sn=Math.max(0.55,Math.floor(sn*1000)/1000);if(Math.abs(sn-s0)<0.005){s0=sn;break}s0=sn;}
+  for(var it=0;it<4;it++){s.style.width=(innerW/s0)+'px';var nh=s.scrollHeight;var sn=Math.min(1.5,innerH/nh);sn=Math.max(0.55,Math.floor(sn*1000)/1000);if(Math.abs(sn-s0)<0.005){s0=sn;break}s0=sn;}
   s.style.width=(innerW/s0)+'px';
   s.style.transform='scale('+s0+')';s.classList.add('a3fill');s.style.minHeight=(innerH/s0)+'px';
  });
